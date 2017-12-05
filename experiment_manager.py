@@ -1,8 +1,9 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import urllib.parse, json, time, ast, random
 from pprint import pprint
-
+from threading import Thread
 import experiment_operations
+import job_manager
 
 class HTTP(BaseHTTPRequestHandler):
     def _set_headers(self):
@@ -41,7 +42,7 @@ class HTTP(BaseHTTPRequestHandler):
         self.wfile.write(bytes(str(data_back), "utf-8"))
 
 
-def start(port=8777):
+def start_experiment_receiver(port=8777):
     server_address = ('', port)
     httpd = HTTPServer(server_address, HTTP)
     print('Starting httpd...' + str(port))
@@ -56,4 +57,7 @@ def start(port=8777):
     print(time.asctime(), "Server Stops - %s:%s" % (server_address, port))
 
 if __name__ == '__main__':
-    start()
+    job_manager_thread = Thread(target = job_manager.start_job_manager, args = ())
+    job_manager_thread.start()
+    experiment_receiver_thread = Thread(target = start_experiment_receiver, args = ())
+    experiment_receiver_thread.start()

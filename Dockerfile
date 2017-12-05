@@ -2,6 +2,9 @@ FROM python:3
 
 ADD requirements.txt /experiment_manager/requirements.txt
 ADD experiment_operations.py /experiment_manager/experiment_operations.py
+ADD job_manager.py /experiment_manager/job_manager.py
+ADD jqueuing_worker.py /experiment_manager/jqueuing_worker.py
+ADD job_operations.py /experiment_manager/job_operations.py
 ADD experiment_manager.py /experiment_manager/experiment_manager.py
 ADD config /experiment_manager/config
 ADD data /experiment_manager/data

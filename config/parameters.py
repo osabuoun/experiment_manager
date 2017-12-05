@@ -2,22 +2,23 @@ import redis
 JOB_QUEUE_PREFIX 	= 	'jqueue_service_'
 broker_protocol		= 	'pyamqp'
 broker_username 	= 	'guest'
-#broker_username 	= 	'admin'
+broker_username 	= 	'admin'
 broker_password 	= 	''
-#broker_password 	= 	'mypass'
-broker_server		=	'127.0.0.1'
-#broker_server		=	'rabbit'
+broker_password 	= 	'mypass'
+#broker_server		=	'127.0.0.1'
+broker_port 		= 	5672
+broker_server		=	'rabbit'
 
 def broker():
 	broker 	= 	broker_protocol + '://' + broker_username 
 	if (broker_password != ''):
 		broker 	= broker + ':' + broker_password
-	broker 	= 	broker + '@' + broker_server + '//'
+	broker 	= 	broker + '@' + broker_server + ':' + str(broker_port) + '//'
 	return broker
 
 backend_protocol 			= 	'redis'
-backend_server	 			=	'127.0.0.1'
-#backend_server	 			=	'redis'
+#backend_server	 			=	'127.0.0.1'
+backend_server	 			=	'redis'
 backend_port     			=	6379
 backend_db		 			=	0
 backend_experiment_db_id	=	10

@@ -5,14 +5,13 @@ from threading import Thread
 
 import time, sys, ast
 from config.parameters import JOB_QUEUE_PREFIX
+import config.parameters as _params
 worker_name = "NoName"
 
 def init(service_name):
 	job_app = Celery('job_app',
-		broker	= 	'pyamqp://guest@' + '127.0.0.1' + '//',
-		backend	=	'redis://' + '127.0.0.1' + ':6379/1',
-		#broker	= 	'pyamqp://admin:mypass@' + 'rabbit' + '//',
-		#backend	=	'redis://' + 'redis' + ':6379/1',
+		broker	= 	_params.broker() ,
+		backend	=	_params.backend(1),
 		include =   ['job_operations'])
 
 	job_app.conf.update(

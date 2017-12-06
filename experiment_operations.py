@@ -1,34 +1,66 @@
 from pprint import pprint
 import time, sys, redis, random, http.client, urllib.parse
+from celery import subtask
 
-import monitoring, config.parameters as _params
-
-from config.parameters import backend_experiment_db
+import monitoring, job_operations
+from config.parameters import backend_experiment_db, JOB_QUEUE_PREFIX
 
 print("I'm starting the Experiment Operations")
 index=0
 customer_services = {}
 
 def add_experiment(experiment):
-	print("experiment: " + str(experiment))
+	output = "experiment: " + str(experiment)
 	exp_id = "exp_" + str(int(round(time.time() * 1000))) + "_" + str(random.randrange(100, 999))
-	experiment_service_name = experiment['service_name']
-	experiment_params = experiment['params']  
-	experiment_command = experiment['command']  
-	output = add_service(exp_id, '', experiment_service_name, experiment_params )
+	output += add_service(exp_id, experiment['service_name'], experiment['params'] )
+	if (isinstance(experiment['jobs'], list)):
+		output += process_job_list(exp_id, experiment)
+	else:
+		output += process_job_array(exp_id,experiment)
+	print(output)
+	return output
+
+
+def process_job_list(exp_id, experiment):
+	print("There is a list of " + str(len(experiment['jobs'])))
+	output = ""
 	for job in experiment['jobs']:
-		job_service_name = ""
-		job_params = []
 		try:
 			job_service_name = job['service_name'] 
 		except Exception as e:
-			job_service_name = experiment_service_name
+			job['service_name'] = experiment['service_name']
 		try:
 			job_params = job['params'] 
 		except Exception as e:
-			job_params = experiment_params
-		output = output + add_service(exp_id, job['id'], job_service_name, job_params)
-		output = output + add_job(job)
+			job['params'] = experiment['params'] 
+		try:
+			job_command = job['command'] 
+		except Exception as e:
+			job['command'] = experiment['command']
+		output += add_service(exp_id, job['service_name'], job['params'], job['id'])
+		output += add_job(exp_id, job)
+	return output
+
+def process_job_array(exp_id, experiment):
+	output = ""
+	jobs = experiment['jobs']
+	print("There is an array of " + str(jobs['count']))
+	try:
+		job_service_name = jobs['service_name'] 
+	except Exception as e:
+		jobs['service_name'] = experiment['service_name']
+	try:
+		job_params = jobs['params'] 
+	except Exception as e:
+		jobs['params'] = experiment['params'] 
+	try:
+		job_command = jobs['command'] 
+	except Exception as e:
+		jobs['command'] = experiment['command']
+	output += add_service(exp_id, jobs['service_name'], jobs['params'], jobs['id'])
+	for x in range(0,jobs['count']):
+		job_id = jobs['id'] + "_" + str(x)
+		output += add_job(exp_id, jobs)
 	return output
 
 def del_experiment(experiment):
@@ -38,33 +70,26 @@ def del_experiment(experiment):
 		return "Customer Service " + customer_service_name + " has been removed from the queue" + "\n"
 	return "Customer Service " + customer_service_name + " wasn't found in the queue" + "\n"
 
-def add_service(exp_id, job_id,  customer_service_name, params):
-	print("**************************************")
-	if (backend_experiment_db.exists(customer_service_name)):
-		#result = "\n" + "Customer Service " + customer_service_name + " already registered" + "\n"
-		return ""
-	backend_experiment_db.set(customer_service_name, {'exp_id':exp_id, 'job_id':job_id, 'params':params})
+def add_service(exp_id, service_name, parameters, job_id = ""):
 	result  = "\n" + "**************************************" + "\n"
-	result += "A new experiment has just been added" + "\n"
-	result += "ID: " + str(exp_id) + "\n" 
-	result += "Service Name: " + str(customer_service_name) + "\n" 
-	result += "Parameters: " + str(params) + "\n" 
+	if (backend_experiment_db.exists(service_name)):
+		return ""
+	backend_experiment_db.set(service_name, {'exp_id':exp_id, 'job_id':job_id, 'params':parameters})
+	result += "A new service has just been added" + "\n"
+	result += "Exp_ID: " + str(exp_id) + "\n" 
+	result += "Service Name: " + str(service_name) + "\n" 
+	result += "Parameters: " + str(parameters) + "\n" 
 	result += "**************************************" + "\n"
 	return result
 
-def add_job(job):
-	params = urllib.parse.urlencode(job)
-	headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
-	conn = http.client.HTTPConnection("localhost:8778")
-	conn.request("POST", "", params, headers)
-	response = conn.getresponse()
-	data = response.read()
-	output = "\n"
-	output = output + "job_id:" + job['id']
-	output = output + ", Status:" + response.status 
-	output = output + ", Reason:" + response.reason 
-	output = output + ", data:" + data 
-	output = output + "\n"
-	response = conn.getresponse()
-	conn.close()
+def add_job(exp_id, job):
+	job_queue_id = "j_" + job['service_name'] +"_" + str(int(round(time.time() * 1000))) + "_" + str(random.randrange(100, 999))
+	output = "job_queue_id:" + job_queue_id
+	output += "JOB_QUEUE_PREFIX:" + JOB_QUEUE_PREFIX
+	output += "service_name:" + job['service_name']
+	chain = subtask('job_operations.add', queue = JOB_QUEUE_PREFIX + job['service_name'])
+	chain.delay(exp_id, job_queue_id, job)
+	output += "\n" + "------------------------------------" + "\n"
+	output += "The job " + str(job['id']) + " has just been added" + "\n"
+	output += "------------------------------------" + "\n"
 	return output

@@ -5,9 +5,9 @@ broker_protocol		= 	'pyamqp'
 broker_username 	= 	'admin'
 #broker_password 	= 	''
 broker_password 	= 	'mypass'
-#broker_server		=	'127.0.0.1'
+broker_server		=	'127.0.0.1'
+#broker_server		=	'rabbit'
 broker_port 		= 	5672
-broker_server		=	'rabbit'
 
 def broker():
 	broker 	= 	broker_protocol + '://' + broker_username 
@@ -17,8 +17,8 @@ def broker():
 	return broker
 
 backend_protocol 			= 	'redis'
-#backend_server	 			=	'127.0.0.1'
-backend_server	 			=	'redis'
+backend_server	 			=	'127.0.0.1'
+#backend_server	 			=	'redis'
 backend_port     			=	6379
 backend_db		 			=	0
 backend_experiment_db_id	=	10

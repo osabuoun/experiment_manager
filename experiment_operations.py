@@ -3,7 +3,7 @@ import time, sys, redis, random, http.client, urllib.parse
 from celery import subtask
 
 import monitoring, job_operations
-from config.parameters import backend_experiment_db, JOB_QUEUE_PREFIX
+from parameters import backend_experiment_db, JOB_QUEUE_PREFIX
 
 print("I'm starting the Experiment Operations")
 index=0

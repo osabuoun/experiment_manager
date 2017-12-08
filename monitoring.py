@@ -1,8 +1,6 @@
 from prometheus_client import Counter, Gauge, Histogram
 import time, sys
-from datadog import DogStatsd
-
-statsd = DogStatsd(host="stastd", port=9125)
+from parameters import statsd
 
 JQUEUING_WORKER_ADDED_COUNT = 'jqueuing_worker_added_count'
 JQUEUING_WORKER_COUNT = "jqueuing_worker_count" 

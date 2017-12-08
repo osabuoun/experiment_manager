@@ -4,8 +4,8 @@ from celery.bin import worker
 from threading import Thread
 
 import time, sys, ast
-from config.parameters import JOB_QUEUE_PREFIX
-import config.parameters as _params
+from parameters import JOB_QUEUE_PREFIX
+import parameters as _params
 worker_name = "NoName"
 
 def init(service_name):

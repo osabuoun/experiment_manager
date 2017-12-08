@@ -3,7 +3,7 @@ from celery import Celery
 from celery.bin import worker
 import time, sys
 from threading import Thread
-import config.parameters as _params
+import parameters as _params
 import job_operations
 
 node_id = "id_1"

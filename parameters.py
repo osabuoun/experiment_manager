@@ -38,7 +38,7 @@ def backend(db):
 
 from datadog import DogStatsd
 
-STASTD_SERVER 	= 'stastd'
-STASTD_PORT		= 9125
+STATSD_SERVER 	= 'statsd'
+STATSD_PORT		= 9125
 
-statsd = DogStatsd(host=STASTD_SERVER, port=STASTD_PORT)
+statsd = DogStatsd(host=STATSD_SERVER, port=STATSD_PORT)

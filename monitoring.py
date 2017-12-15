@@ -32,7 +32,7 @@ JQUEUER_JOB_ACCOMPLISHED_COUNT = 'jqueuer_job_accomplished_count'
 JQUEUER_JOB_ACCOMPLISHED_LATENCY = 'jqueuer_job_accomplished_latency'
 
 def add_job(experiment_id ,service_name, job_id):
-	statsd.increment(JQUEUER_JOB_RUNNING_COUNT,
+	statsd.increment(JQUEUER_JOB_ADDED_COUNT,
 		tags=[
 			'experiment_id:%s' % experiment_id,
 			'service_name:%s' % service_name,

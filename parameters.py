@@ -17,7 +17,7 @@ def broker():
 	return broker
 
 backend_protocol 			= 	'redis'
-#backend_server	 			=	'127.0.0.1'
+#backend_server	 			=	'192.168.253.1'
 backend_server	 			=	'redis'
 backend_port     			=	6379
 backend_db		 			=	0
@@ -38,6 +38,7 @@ def backend(db):
 
 from datadog import DogStatsd
 
+#STASTD_SERVER 	= '192.168.253.1'
 STATSD_SERVER 	= 'statsd'
 STATSD_PORT		= 9125
 

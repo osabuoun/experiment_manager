@@ -89,6 +89,7 @@ def add_job(exp_id, job):
 	output += "service_name:" + job['service_name']
 	chain = subtask('job_operations.add', queue = JOB_QUEUE_PREFIX + job['service_name'])
 	chain.delay(exp_id, job_queue_id, job)
+	monitoring.add_job(exp_id, job['service_name'], job_queue_id)
 	output += "\n" + "------------------------------------" + "\n"
 	output += "The job " + str(job['id']) + " has just been added" + "\n"
 	output += "------------------------------------" + "\n"

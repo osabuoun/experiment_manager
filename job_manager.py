@@ -38,11 +38,11 @@ job_manager_app = init_job_manager()
 def start_job_manager():
 	print("I'm starting the Job Manager")
 	job_manager_app = init_job_manager()
-	jqueuing_worker = worker.worker(app=job_manager_app)
+	job_manager_worker = worker.worker(app=job_manager_app)
 	job_manager_options = {
 		'hostname'	: "job_manager",
 		'queues'	: [job_manager_queue_name],
 		'loglevel': 'INFO',
 		'traceback': True,
 	}
-	jqueuing_worker.run(**job_manager_options)
+	job_manager_worker.run(**job_manager_options)

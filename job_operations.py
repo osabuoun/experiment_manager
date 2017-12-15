@@ -16,7 +16,7 @@ def add(self, exp_id, job_queue_id, job):
 	worker_id = self.request.hostname.split("@")[1]
 	node_id, service_name, container_id  = worker_id.split("##")
 
-	monitoring.run_job(node_id, service_name, worker_id, job_queue_id)
+	monitoring.run_job(node_id, exp_id,service_name, worker_id, job_queue_id)
 
 	#log_file =  "./log/" + self.request.hostname + ".log"
 	log_file =  "./" + worker_id + ".log"
@@ -43,9 +43,9 @@ def add(self, exp_id, job_queue_id, job):
 					tasks['data'] = job['data']
 				task_start_time = time.time()
 
-				monitoring.run_task(node_id, service_name, worker_id, job_queue_id, task["id"])
+				monitoring.run_task(node_id, exp_id,service_name, worker_id, job_queue_id, task["id"])
 				command = ['docker','exec', container_id] + task_command + [str(task["data"])]
-				monitoring.terminate_task(node_id, service_name, worker_id, job_queue_id, task["id"], task_start_time)
+				monitoring.terminate_task(node_id, exp_id, service_name, worker_id, job_queue_id, task["id"], task_start_time)
 				output = subprocess.check_output(command)
 				myfile.write("output: " + str(output) + "\n")
 				print(output)
@@ -68,10 +68,10 @@ def add(self, exp_id, job_queue_id, job):
 				myfile.write("-------------------------------------\n")
 				task_start_time = time.time()
 				task_id = tasks["id"] + "_" + str(x)
-				monitoring.run_task(node_id, service_name, worker_id, job_queue_id, task_id)
+				monitoring.run_task(node_id, exp_id, service_name, worker_id, job_queue_id, task_id)
 				command = ['docker','exec', container_id] + tasks['command'] + [str(tasks["data"])]
 				print(worker_id + " - Running Task : " + str(command))
-				monitoring.terminate_task(node_id, service_name, worker_id, job_queue_id, task_id , task_start_time)
+				monitoring.terminate_task(node_id, exp_id, service_name, worker_id, job_queue_id, task_id , task_start_time)
 				output = subprocess.check_output(command)
 				myfile.write("output: " + str(output) + "\n")
 				print(worker_id + " - Output: " + str(output))
@@ -81,4 +81,4 @@ def add(self, exp_id, job_queue_id, job):
 		return output
 
 			
-	monitoring.terminate_job(node_id, service_name, worker_id, job_queue_id, job_start_time)
+	monitoring.terminate_job(node_id, exp_id, service_name, worker_id, job_queue_id, job_start_time)

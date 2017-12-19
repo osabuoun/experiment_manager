@@ -14,9 +14,9 @@ class MyTask(celery.Task):
 		print('{0!r} failed: {1!r}'.format(task_id, exc))
 		print("/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/")
 
-def process_list(exp_id, job_queue_id, job):
+def process_list(exp_id, job_queue_id, job, myfile):
+	output = ""
 	for task in job['tasks']:
-		output = ""
 		myfile.write("-------------------------------------\n")
 		myfile.write("Task: " + str(task) + "\n")
 		try:
@@ -41,11 +41,11 @@ def process_list(exp_id, job_queue_id, job):
 			raise KeyError()
 		finally:
 			monitoring.terminate_task(node_id, exp_id, service_name, worker_id, job_queue_id, task["id"], task_start_time)
-
 		myfile.write("output: " + str(output) + "\n")
-		return output
+	return output
 
-def process_array(exp_id, job_queue_id, job):
+def process_array(exp_id, job_queue_id, job, myfile):
+	output = ""
 	tasks = job['tasks']
 	try:
 		task_command = tasks['command'] 
@@ -68,6 +68,7 @@ def process_array(exp_id, job_queue_id, job):
 		monitoring.terminate_task(node_id, exp_id, service_name, worker_id, job_queue_id, task_id , task_start_time)
 		myfile.write("output: " + str(output) + "\n")
 		print(worker_id + " - Output: " + str(output))
+	return output
 
 @job_app.task(bind=True, base=MyTask)
 def add(self, exp_id, job_queue_id, job):
@@ -93,9 +94,9 @@ def add(self, exp_id, job_queue_id, job):
 
 		if (isinstance(job['tasks'], list)):
 			print("Tasks : There is a List of " + str(len(job['tasks'])))
-			output = process_list(exp_id, job_queue_id, job)
+			output = process_list(exp_id, job_queue_id, job, myfile)
 		else:
-			output = process_array(exp_id, job_queue_id, job)
+			output = process_array(exp_id, job_queue_id, job, myfile)
 			print("Tasks : There is an array of " + str(tasks['count']))
 
 		print("......................................................")

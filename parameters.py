@@ -1,4 +1,4 @@
-import redis 
+import redis
 JOB_QUEUE_PREFIX 	= 	'jqueue_service_'
 broker_protocol		= 	'pyamqp'
 #broker_username 	= 	'guest'

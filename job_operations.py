@@ -69,7 +69,7 @@ def process_array():
 		myfile.write("output: " + str(output) + "\n")
 		print(worker_id + " - Output: " + str(output))
 
-@job_app.task(bind=True, name='task_add_', base=MyTask)
+@job_app.task(bind=True, base=MyTask)
 def add(self, exp_id, job_queue_id, job):
 	job_params  = job['params']
 	job_command 	= job['command']

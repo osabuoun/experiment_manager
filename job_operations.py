@@ -45,7 +45,7 @@ def process_list(exp_id, job_queue_id, job):
 		myfile.write("output: " + str(output) + "\n")
 		return output
 
-def process_array():
+def process_array(exp_id, job_queue_id, job):
 	tasks = job['tasks']
 	try:
 		task_command = tasks['command'] 

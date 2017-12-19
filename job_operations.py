@@ -93,9 +93,9 @@ def add(self, exp_id, job_queue_id, job):
 
 		if (isinstance(job['tasks'], list)):
 			print("Tasks : There is a List of " + str(len(job['tasks'])))
-			output = process_list()
+			output = process_list(exp_id, job_queue_id, job)
 		else:
-			output = process_array()
+			output = process_array(exp_id, job_queue_id, job)
 			print("Tasks : There is an array of " + str(tasks['count']))
 
 		print("......................................................")

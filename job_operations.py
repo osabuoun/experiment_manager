@@ -12,8 +12,8 @@ print("Job Operations - Started")
 class MyTask(celery.Task):
 	def on_failure(self, exc, task_id, args, kwargs, einfo):
 		print("/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/")
-		print('{0!r} failed: {1!r}'.format(task_id, exc))
-		self.update_state(state='FAILURE', meta={'exc': exc, 'task_id': task_id, 'args': args, 'kwargs': kwargs, 'einfo': einfo})
+		#print('{0!r} failed: {1!r}'.format(task_id, exc))
+		self.update_state(state='FAILURE', meta={'exc': exc}) #, 'task_id': task_id, 'args': args, 'kwargs': kwargs, 'einfo': einfo})
 		print("/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/")
 
 def getNodeID(worker_id):
@@ -52,7 +52,7 @@ def process_list(worker_id, exp_id, job_queue_id, job, myfile, job_start_time):
 		print("/////////////////////////////////////////////////////")
 		print(str(e))
 		print("/////////////////////////////////////////////////////")
-		Reject(exc, requeue=True)
+		Reject(e, requeue=True)
 	myfile.write("output: " + str(output) + "\n")
 	print(worker_id + " - Output: " + str(output))
 	return output
@@ -86,7 +86,7 @@ def process_array(worker_id, exp_id, job_queue_id, job, myfile, job_start_time):
 		print("/////////////////////////////////////////////////////")
 		print(str(e))
 		print("/////////////////////////////////////////////////////")
-		Reject(exc, requeue=True)
+		Reject(e, requeue=True)
 	myfile.write("output: " + str(output) + "\n")
 	print(worker_id + " - Output: " + str(output))
 	return output

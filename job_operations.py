@@ -12,6 +12,7 @@ class MyTask(celery.Task):
 	def on_failure(self, exc, task_id, args, kwargs, einfo):
 		print("/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/")
 		print('{0!r} failed: {1!r}'.format(task_id, exc))
+		self.update_state(state='FAILURE', meta={'exc': exc, 'task_id': task_id, 'args': args, 'kwargs': kwargs, 'einfo': einfo})
 		print("/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/")
 
 def getNodeID(worker_id):
@@ -23,7 +24,7 @@ def getServiceName(worker_id):
 def getContainerID(worker_id):
 	return worker_id.split("##")[2]
 
-def process_list(worker_id, exp_id, job_queue_id, job, myfile):
+def process_list(worker_id, exp_id, job_queue_id, job, myfile, job_start_time):
 	output = ""
 	for task in job['tasks']:
 		myfile.write("-------------------------------------\n")
@@ -44,6 +45,7 @@ def process_list(worker_id, exp_id, job_queue_id, job, myfile):
 			output = subprocess.check_output(command)
 		except Exception as e:
 			monitoring.task_failed(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, task["id"], task_start_time)
+			monitoring.job_failed(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, job_start_time)
 			print("/////////////////////////////////////////////////////")
 			print(str(e))
 			print("/////////////////////////////////////////////////////")
@@ -53,7 +55,7 @@ def process_list(worker_id, exp_id, job_queue_id, job, myfile):
 		myfile.write("output: " + str(output) + "\n")
 	return output
 
-def process_array(worker_id, exp_id, job_queue_id, job, myfile):
+def process_array(worker_id, exp_id, job_queue_id, job, myfile, job_start_time):
 	output = ""
 	tasks = job['tasks']
 	try:
@@ -71,10 +73,20 @@ def process_array(worker_id, exp_id, job_queue_id, job, myfile):
 		task_start_time = time.time()
 		task_id = tasks["id"] + "_" + str(x)
 		monitoring.run_task(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, task_id)
-		command = ['docker','exec', getContainerID(worker_id)] + tasks['command'] + [str(tasks["data"])]
-		print(worker_id + " - Running Task : " + str(command))
-		output = subprocess.check_output(command)
-		monitoring.terminate_task(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, task_id , task_start_time)
+
+		try:
+			command = ['docker','exec', getContainerID(worker_id)] + tasks['command'] + [str(tasks["data"])]
+			print(worker_id + " - Running Task : " + str(command))
+			output = subprocess.check_output(command)
+		except Exception as e:
+			monitoring.task_failed(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, task_id, task_start_time)
+			monitoring.job_failed(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, job_start_time)
+			print("/////////////////////////////////////////////////////")
+			print(str(e))
+			print("/////////////////////////////////////////////////////")
+			raise KeyError()
+		finally:
+			monitoring.terminate_task(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, task_id , task_start_time)
 		myfile.write("output: " + str(output) + "\n")
 		print(worker_id + " - Output: " + str(output))
 	return output
@@ -100,12 +112,12 @@ def add(self, exp_id, job_queue_id, job):
 		myfile.write("New Queue Job: " + job_queue_id + "\n") 
 		myfile.write("Command: " + str(job['command']) + "\n")
 		myfile.write("Parameters: " + str(len(job_params)) + "\n")
-
-		if (isinstance(job['tasks'], list)):
-			print("Tasks : There is a List of " + str(len(job['tasks'])))
-			output = process_list(worker_id, exp_id, job_queue_id, job, myfile)
+		tasks = job['tasks']
+		if (isinstance(tasks, list)):
+			print("Tasks : There is a List of " + str(len(tasks)))
+			output = process_list(worker_id, exp_id, job_queue_id, job, myfile, job_start_time)
 		else:
-			output = process_array(worker_id, exp_id, job_queue_id, job, myfile)
+			output = process_array(worker_id, exp_id, job_queue_id, job, myfile, job_start_time)
 			print("Tasks : There is an array of " + str(tasks['count']))
 
 		print("......................................................")

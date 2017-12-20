@@ -5,6 +5,7 @@ from jqueuing_worker import job_app
 import jqueuing_worker as jqw
 import monitoring
 import celery
+from celery.exceptions import Reject
 
 print("Job Operations - Started")
 
@@ -26,33 +27,34 @@ def getContainerID(worker_id):
 
 def process_list(worker_id, exp_id, job_queue_id, job, myfile, job_start_time):
 	output = ""
-	for task in job['tasks']:
-		myfile.write("-------------------------------------\n")
-		myfile.write("Task: " + str(task) + "\n")
-		try:
-			task_command = task['command'] 
-		except Exception as e:
-			task['command'] = job['command']
-		try:
-			task_data = task['data'] 
-		except Exception as e:
-			tasks['data'] = job['data']
+	try:
+		for task in job['tasks']:
+			myfile.write("-------------------------------------\n")
+			myfile.write("Task: " + str(task) + "\n")
+			try:
+				task_command = task['command'] 
+			except Exception as e:
+				task['command'] = job['command']
+			try:
+				task_data = task['data'] 
+			except Exception as e:
+				tasks['data'] = job['data']
 		
-		task_start_time = time.time()
-		monitoring.run_task(getNodeID(worker_id), exp_id,getServiceName(worker_id), worker_id, job_queue_id, task["id"])
-		try:
+			task_start_time = time.time()
+			monitoring.run_task(getNodeID(worker_id), exp_id,getServiceName(worker_id), worker_id, job_queue_id, task["id"])
+
 			command = ['docker','exec', getContainerID(worker_id)] + task_command + [str(task["data"])]
 			output = subprocess.check_output(command)
-		except Exception as e:
-			monitoring.task_failed(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, task["id"], task_start_time)
-			monitoring.job_failed(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, job_start_time)
-			print("/////////////////////////////////////////////////////")
-			print(str(e))
-			print("/////////////////////////////////////////////////////")
-			raise KeyError()
-		finally:
 			monitoring.terminate_task(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, task["id"], task_start_time)
-		myfile.write("output: " + str(output) + "\n")
+	except Exception as e:
+#		monitoring.task_failed(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, task["id"], task_start_time)
+		monitoring.job_failed(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, job_start_time)
+		print("/////////////////////////////////////////////////////")
+		print(str(e))
+		print("/////////////////////////////////////////////////////")
+		Reject(exc, requeue=True)
+	myfile.write("output: " + str(output) + "\n")
+	print(worker_id + " - Output: " + str(output))
 	return output
 
 def process_array(worker_id, exp_id, job_queue_id, job, myfile, job_start_time):
@@ -68,27 +70,25 @@ def process_array(worker_id, exp_id, job_queue_id, job, myfile, job_start_time):
 		tasks['data'] = job['data']
 
 	myfile.write("Task: " + str(tasks) + "\n")
-	for x in range(0,tasks['count']):
-		myfile.write("-------------------------------------\n")
-		task_start_time = time.time()
-		task_id = tasks["id"] + "_" + str(x)
-		monitoring.run_task(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, task_id)
-
-		try:
+	try:
+		for x in range(0,tasks['count']):
+			myfile.write("-------------------------------------\n")
+			task_start_time = time.time()
+			task_id = tasks["id"] + "_" + str(x)
+			monitoring.run_task(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, task_id)
 			command = ['docker','exec', getContainerID(worker_id)] + tasks['command'] + [str(tasks["data"])]
 			print(worker_id + " - Running Task : " + str(command))
 			output = subprocess.check_output(command)
-		except Exception as e:
-			monitoring.task_failed(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, task_id, task_start_time)
-			monitoring.job_failed(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, job_start_time)
-			print("/////////////////////////////////////////////////////")
-			print(str(e))
-			print("/////////////////////////////////////////////////////")
-			raise KeyError()
-		finally:
 			monitoring.terminate_task(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, task_id , task_start_time)
-		myfile.write("output: " + str(output) + "\n")
-		print(worker_id + " - Output: " + str(output))
+	except Exception as e:
+#		monitoring.task_failed(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, task_id, task_start_time)
+		monitoring.job_failed(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, job_start_time)
+		print("/////////////////////////////////////////////////////")
+		print(str(e))
+		print("/////////////////////////////////////////////////////")
+		Reject(exc, requeue=True)
+	myfile.write("output: " + str(output) + "\n")
+	print(worker_id + " - Output: " + str(output))
 	return output
 
 @job_app.task(bind=True, base=MyTask)

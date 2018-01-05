@@ -104,7 +104,7 @@ def add_job(exp_id, job):
 	output += "\n" + "------------------------------------" + "\n"
 	output += "The job " + str(job['id']) + " has just been added" + "\n"
 	task_count = get_task_count(job['tasks'])
-	monitoring.add_tasks(exp_id, job['service_name'], job_queue_id, task_count)
+	monitoring.add_task(exp_id, job['service_name'], job_queue_id, task_count)
 	output += "The job " + str(job['id']) + " has " + str(task_count) + " tasks, they have just been added" + "\n"
 	output += "------------------------------------" + "\n"
 	return output

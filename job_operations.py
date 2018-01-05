@@ -46,6 +46,13 @@ def process_list(worker_id, exp_id, job_queue_id, job, myfile, job_start_time):
 			command = ['docker','exec', getContainerID(worker_id)] + task_command + [str(task["data"])]
 			output = subprocess.check_output(command)
 			monitoring.terminate_task(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, task["id"], task_start_time)
+	except subprocess.CalledProcessError as e:
+		monitoring.job_failed(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, job_start_time)
+		print("/////////////////////////////////////////////////////")
+		print(str(e))
+		print("/////////////////////////////////////////////////////")
+		Reject(e, requeue=True)
+		sys.exit(0)
 	except Exception as e:
 #		monitoring.task_failed(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, task["id"], task_start_time)
 		monitoring.job_failed(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, job_start_time)
@@ -53,6 +60,7 @@ def process_list(worker_id, exp_id, job_queue_id, job, myfile, job_start_time):
 		print(str(e))
 		print("/////////////////////////////////////////////////////")
 		Reject(e, requeue=True)
+
 	myfile.write("output: " + str(output) + "\n")
 	print(worker_id + " - Output: " + str(output))
 	return output

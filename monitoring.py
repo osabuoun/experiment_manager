@@ -128,14 +128,15 @@ JQUEUER_TASK_ACCOMPLISHED_LATENCY = 'jqueuer_task_accomplished_latency'
 JQUEUER_TASK_FAILED_COUNT = 'jqueuer_task_failed_count'
 JQUEUER_TASK_FAILED_LATENCY = 'jqueuer_task_failed_latency'
 
-def add_task(experiment_id ,service_name, job_id, task_id):
+def add_task(experiment_id ,service_name, job_id, task_count = 1):
 	statsd.increment(JQUEUER_TASK_ADDED_COUNT,
 		tags=[
 			'experiment_id:%s' % experiment_id,
 			'service_name:%s' % service_name,
 			'job_id: %s' % job_id,
 			'task_id: %s' % task_id,
-		]
+		],
+		task_count
 	)
 
 def run_task(node_id, experiment_id ,service_name, qworker_id, job_id, task_id):

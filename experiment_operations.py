@@ -20,6 +20,16 @@ def add_experiment(experiment):
 	print(output)
 	return output
 
+def get_task_count(tasks):
+	count = 0
+	try:
+		if (isinstance(tasks, list)):
+			count = len(tasks)
+		else:
+			count = tasks['count']
+	except Exception as e:
+		count = 0
+	return count 
 
 def process_job_list(exp_id, experiment):
 	print("There is a list of " + str(len(experiment['jobs'])))
@@ -37,6 +47,7 @@ def process_job_list(exp_id, experiment):
 			job_command = job['command'] 
 		except Exception as e:
 			job['command'] = experiment['command']
+
 		output += add_service(exp_id, job['service_name'], job['params'], job['id'])
 		output += add_job(exp_id, job)
 	return output
@@ -92,5 +103,8 @@ def add_job(exp_id, job):
 	monitoring.add_job(exp_id, job['service_name'], job_queue_id)
 	output += "\n" + "------------------------------------" + "\n"
 	output += "The job " + str(job['id']) + " has just been added" + "\n"
+	task_count = get_task_count(job['tasks'])
+	monitoring.add_tasks(exp_id, job['service_name'], job_queue_id, task_count)
+	output += "The job " + str(job['id']) + " has " + str(task_count) + " tasks, they have just been added" + "\n"
 	output += "------------------------------------" + "\n"
 	return output

@@ -134,7 +134,6 @@ def add_task(experiment_id ,service_name, job_id, task_count = 1):
 			'experiment_id:%s' % experiment_id,
 			'service_name:%s' % service_name,
 			'job_id: %s' % job_id,
-			'task_id: %s' % task_id,
 		],
 		value=task_count
 	)

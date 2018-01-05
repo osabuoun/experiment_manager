@@ -136,7 +136,7 @@ def add_task(experiment_id ,service_name, job_id, task_count = 1):
 			'job_id: %s' % job_id,
 			'task_id: %s' % task_id,
 		],
-		task_count
+		value=task_count
 	)
 
 def run_task(node_id, experiment_id ,service_name, qworker_id, job_id, task_id):

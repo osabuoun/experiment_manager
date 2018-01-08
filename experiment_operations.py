@@ -5,18 +5,32 @@ from celery import subtask
 import monitoring, job_operations
 from parameters import backend_experiment_db, JOB_QUEUE_PREFIX
 
+from experiment import Experiment
 print("I'm starting the Experiment Operations")
 index=0
 customer_services = {}
 
-def add_experiment(experiment):
-	output = "experiment: " + str(experiment)
-	exp_id = "exp_" + str(int(round(time.time() * 1000))) + "_" + str(random.randrange(100, 999))
-	output += add_service(exp_id, experiment['service_name'], experiment['params'] )
-	if (isinstance(experiment['jobs'], list)):
-		output += process_job_list(exp_id, experiment)
+def add_experiment(experiment_json):
+	output = "experiment_json: " + str(experiment_json)
+	private_id = str(int(round(time.time() * 1000))) + "_" + str(random.randrange(100, 999))
+	service_name = experiment_json['image_url'] + "__" + private_id
+	exp_id = "exp_" + private_id
+
+	experiment = Experiment(exp_id, service_name)
+	try:
+		experiment.update('image_name', experiment_json['image_name'])
+	except Exception as e:
+		experiment.update('image_name', "")
+	try:
+		experiment.update('image_name', experiment_json['image_name'])
+	except Exception as e:
+		experiment.update('image_name', "")
+		
+	output += add_service(exp_id, service_name , experiment_json['params'] )
+	if (isinstance(experiment_json['jobs'], list)):
+		output += process_job_list(exp_id, experiment_json)
 	else:
-		output += process_job_array(exp_id,experiment)
+		output += process_job_array(exp_id,experiment_json)
 	print(output)
 	return output
 

@@ -7,20 +7,20 @@ from threading import Thread
 import prometheus_getter
 
 from experiment import Experiment 
-from autoscaler import Autoscaler
+#from autoscaler import Autoscaler
 
-autoscaler = Autoscaler()
+#autoscaler = Autoscaler()
 prometheus_protocol = 'http'
 prometheus_ip       = '127.0.0.1'
 prometheus_port     = 9090
 
-experiments = []
+experiments = {}
 def add_experiment(experiment_json):
 	output = "experiment_json: " + str(experiment_json)
 	private_id = str(int(round(time.time() * 1000))) + "_" + str(random.randrange(100, 999))
 	experiment_id = "exp_" + private_id
 
-	experiment = Experiment(experiment_id, private_id, experiment_json, autoscaler)
+	experiment = Experiment(experiment_id, private_id, experiment_json)
 	experiment_thread = Thread(target = experiment.start, args = ())
 	experiment_thread.start()
 

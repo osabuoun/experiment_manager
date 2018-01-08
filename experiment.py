@@ -1,18 +1,18 @@
-import time, math, datetime
+import time, math, datetime, random
 from parameters import backend_experiment_db, JOB_QUEUE_PREFIX
 from celery import subtask
 import monitoring, job_operations, time_decoder
 
 class Experiment:
-	def __init__(self, experiment_id, private_id, experiment, autoscaler):
+	def __init__(self, experiment_id, private_id, experiment):
 		self.log = ""
 		self.actual_start_timestamp	= 	self.time_now()
 		self.experiment_id 	= experiment_id
-		self.autoscaler = autoscaler
+		#self.autoscaler = autoscaler
 		self.image_url = experiment['image_url']
 		try:
-			self.service_name 	= self.image_url + "__" + private_id
-			self.add_service(self.service_name)
+			self.service_name 	= self.image_url.replace("/","_").replace(":","_") + "__" + private_id
+			#self.add_service(self.service_name)
 		except Exception as e:
 			self.service_name 	= None
 		self.experiment = experiment
@@ -141,7 +141,7 @@ class Experiment:
 			count = 0
 		return count 
 
-	def process_job_list():
+	def process_job_list(self):
 		self.add_log("There is a list of " + str(len(self.experiment['jobs'])))
 		for job in self.experiment['jobs']:
 			try:
@@ -156,7 +156,7 @@ class Experiment:
 			output = self.add_job(job)
 			self.add_log(output)
 
-	def process_job_array():
+	def process_job_array(self):
 		jobs = self.experiment['jobs']
 		print("There is an array of " + str(jobs['count']))
 		try:
@@ -174,6 +174,7 @@ class Experiment:
 			self.add_log(output)
 
 	def add_job(self, job):
+		print('self.service_name:' + self.service_name)
 		job_queue_id = "j_" + self.service_name +"_" + str(int(round(time.time() * 1000))) + "_" + str(random.randrange(100, 999))
 		self.add_log("job_queue_id:" + job_queue_id + " - JOB_QUEUE_PREFIX:" + JOB_QUEUE_PREFIX)
 

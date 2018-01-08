@@ -42,28 +42,36 @@ def start(prometheus_protocol, prometheus_ip, prometheus_port, experiments):
 	url = prometheus_protocol + "://" + prometheus_ip + ":" + str(prometheus_port)
 	while True:
 		for query in worker_queries:
-			resposne = get(query['query_str'])
-			for result in resposne['data']['result']:
-				try:
-					service_name = result['metric']['service_name']
-					for experiment in experiments:
-						try:
-							experiment.update(query['var'], result)
-						except Exception as e:
-							print("A problem happened while updating workers in " + str(experiment))
-							pass
-				except Exception as e:
-					pprint(result)
+			try:
+				resposne = get(query['query_str'])
+				for result in resposne['data']['result']:
+					try:
+						service_name = result['metric']['service_name']
+						for experiment in experiments:
+							try:
+								experiment.update(query['var'], result)
+							except Exception as e:
+								print("A problem happened while updating workers in " + str(experiment))
+								pass
+					except Exception as e:
+						pprint(result)
+			except Exception as ex:
+				print("Error in " + str(query))
+
 		for query in queries:
-			resposne = get(query['query_str'])
-			experiment_id = None
-			for result in resposne['data']['result']:
-				try:
-					experiment_id = result['metric']['experiment_id']
-					experiments[experiment_id].update(query['var'], result)
-				except Exception as e:
-					print("A problem happened while updating jobs/tasks in " + experiment_id)
-					pprint(result)
+			try:
+				resposne = get(query['query_str'])
+				experiment_id = None
+				for result in resposne['data']['result']:
+					try:
+						experiment_id = result['metric']['experiment_id']
+						experiments[experiment_id].update(query['var'], result)
+					except Exception as e:
+						print("A problem happened while updating jobs/tasks in " + experiment_id)
+						pprint(result)
+			except Exception as e:
+				print("Error in " + str(query))
+
 
 		time.sleep(15)
 #start("http", "178.22.69.24", 9090, None)

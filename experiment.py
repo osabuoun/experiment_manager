@@ -10,6 +10,11 @@ class Experiment:
 		self.actual_start_timestamp	= 	self.time_now()
 		self.experiment_id 	= experiment_id
 		#self.autoscaler = autoscaler
+		print("**********************************")
+		print(str(experiment_id))
+		print(str(private_id))
+		print(str(experiment))
+		print("**********************************")
 		self.image_url = experiment['image_url']
 		try:
 			self.service_name 	= self.image_url.replace("/","_").replace(":","_") + "__" + private_id
@@ -19,8 +24,9 @@ class Experiment:
 		self.experiment = experiment
 
 	def add_log(self, text):
-		self.log += text
-		self.log += "\n"
+		if (text):
+			self.log += text
+			self.log += "\n"
 
 	def time_now(self):
 		return datetime.datetime.now().timestamp()
@@ -35,63 +41,42 @@ class Experiment:
 
 	def update(self, query_var, result):
 		if (query_var == 'jqueuer_task_added_count'):
-			self.jqueuer_task_added_count = int(result[value][1])
+			self.jqueuer_task_added_count = int(result['value'][1])
 		elif (query_var == 'jqueuer_task_running_count'):
-			self.jqueuer_task_running_count = int(result[value][1])
+			self.jqueuer_task_running_count = int(result['value'][1])
 		elif (query_var == 'jqueuer_task_started_count'):
-			self.jqueuer_task_started_count = int(result[value][1])
+			self.jqueuer_task_started_count = int(result['value'][1])
 		elif (query_var == 'jqueuer_task_accomplished_count'):
-			self.jqueuer_task_accomplished_count = int(result[value][1])
+			self.jqueuer_task_accomplished_count = int(result['value'][1])
 		elif (query_var == 'jqueuer_task_accomplished_latency'):
-			self.jqueuer_task_accomplished_latency = int(result[value][1])
+			self.jqueuer_task_accomplished_latency = float(result['value'][1])
 		elif (query_var == 'jqueuer_task_accomplished_latency_count'):
-			self.jqueuer_task_accomplished_latency_count = int(result[value][1])
+			self.jqueuer_task_accomplished_latency_count = int(result['value'][1])
 		elif (query_var == 'jqueuer_task_accomplished_latency_sum'):
-			self.jqueuer_task_accomplished_latency_sum = int(result[value][1])
+			self.jqueuer_task_accomplished_latency_sum = float(result['value'][1])
 		elif (query_var == 'jqueuer_job_running_count'):
-			self.jqueuer_job_running_count = int(result[value][1])
+			self.jqueuer_job_running_count = int(result['value'][1])
 		elif (query_var == 'jqueuer_job_started_count'):
-			self.jqueuer_job_started_count = int(result[value][1])
+			self.jqueuer_job_started_count = int(result['value'][1])
 		elif (query_var == 'jqueuer_job_accomplished_count'):
-			self.jqueuer_job_accomplished_count = int(result[value][1])
+			self.jqueuer_job_accomplished_count = int(result['value'][1])
 		elif (query_var == 'jqueuer_job_accomplished_latency'):
-			self.jqueuer_job_accomplished_latency = int(result[value][1])
+			self.jqueuer_job_accomplished_latency = float(result['value'][1])
 		elif (query_var == 'jqueuer_job_accomplished_latency_count'):
-			self.jqueuer_job_accomplished_latency_count = int(result[value][1])
+			self.jqueuer_job_accomplished_latency_count = int(result['value'][1])
 		elif (query_var == 'jqueuer_job_accomplished_latency_sum'):
-			self.jqueuer_job_accomplished_latency_sum = int(result[value][1])
+			self.jqueuer_job_accomplished_latency_sum = float(result['value'][1])
 		elif (query_var == 'jqueuer_job_failed_count'):
-			self.jqueuer_job_failed_count = int(result[value][1])
+			self.jqueuer_job_failed_count = int(result['value'][1])
 		elif (query_var == 'jqueuer_job_failed_latency'):
-			self.jqueuer_job_failed_latency = int(result[value][1])
+			self.jqueuer_job_failed_latency = float(result['value'][1])
 		elif (query_var == 'jqueuer_job_failed_latency_count'):
-			self.jqueuer_job_failed_latency_count = int(result[value][1])
+			self.jqueuer_job_failed_latency_count = int(result['value'][1])
 		elif (query_var == 'jqueuer_job_failed_latency_sum'):
-			self.jqueuer_job_failed_latency_sum = int(result[value][1])
-
-		'''
-		query_vars = {
-			#'jqueuer_worker_count': self.jqueuer_worker_count = int(result[value][1]),
-			'jqueuer_task_added_count': self.jqueuer_task_added_count = int(result[value][1]),
-			'jqueuer_task_running_count': self.jqueuer_task_running_count = int(result[value][1]),
-			'jqueuer_task_started_count': self.jqueuer_task_started_count = int(result[value][1]),
-			'jqueuer_task_accomplished_count': self.jqueuer_task_accomplished_count = int(result[value][1]),
-			'jqueuer_task_accomplished_latency': self.jqueuer_task_accomplished_latency = int(result[value][1]),
-			'jqueuer_task_accomplished_latency_count': self.jqueuer_task_accomplished_latency_count = int(result[value][1]),
-			'jqueuer_task_accomplished_latency_sum': self.jqueuer_task_accomplished_latency_sum = int(result[value][1]),
-			'jqueuer_job_running_count': self.jqueuer_job_running_count = int(result[value][1]),
-			'jqueuer_job_started_count': self.jqueuer_job_started_count = int(result[value][1]),
-			'jqueuer_job_accomplished_count': self.jqueuer_job_accomplished_count = int(result[value][1]),
-			'jqueuer_job_accomplished_latency': self.jqueuer_job_accomplished_latency = int(result[value][1]),
-			'jqueuer_job_accomplished_latency_count': self.jqueuer_job_accomplished_latency_count = int(result[value][1]),
-			'jqueuer_job_accomplished_latency_sum': self.jqueuer_job_accomplished_latency_sum = int(result[value][1]),
-			'jqueuer_job_failed_count': self.jqueuer_job_failed_count = int(result[value][1]),
-			'jqueuer_job_failed_latency': self.jqueuer_job_failed_latency = int(result[value][1]),
-			'jqueuer_job_failed_latency_count': self.jqueuer_job_failed_latency_count = int(result[value][1]),
-			'jqueuer_job_failed_latency_sum': self.jqueuer_job_failed_latency_sum = int(result[value][1]),
-		}
-		query_vars[query_var]
-		'''
+			self.jqueuer_job_failed_latency_sum = float(result['value'][1])
+		elif (query_var == 'jqueuer_worker_count'):
+			if (result['metric']['service_name'] == self.service_name):
+				self.jqueuer_worker_count = int(result['value'][1])
 
 	def init_counters(self):
 		self.service_replica_count 					=	0
@@ -126,6 +111,7 @@ class Experiment:
 			output = self.process_job_list()
 		else:
 			output = self.process_job_array()
+		self.task_per_job_avg = math.ceil(self.jqueuer_task_added_count / self.jqueuer_job_added_count)
 		self.add_log(output)
 
 	def get_task_count(self, tasks):
@@ -149,7 +135,7 @@ class Experiment:
 			try:
 				job_command = job['command'] 
 			except Exception as e:
-				job['command'] = experiment['command']
+				job['command'] = self.experiment['command']
 
 			output = self.add_job(job)
 			self.add_log(output)
@@ -185,19 +171,16 @@ class Experiment:
 		task_count = self.get_task_count(job['tasks'])
 		monitoring.add_task(self.experiment_id, self.service_name, job_queue_id, task_count)
 		self.jqueuer_task_added_count += task_count
-		self.task_per_job_avg = math.ceil(self.jqueuer_task_added_count / jqueuer_job_added_count)
 		self.add_log("The job " + str(job['id']) + " has " + str(task_count) + " tasks, they have just been added")
 
 	def update_params(self):
-		self.deadline				=	time_decoder.get_seconds(experiment['experiment_deadline'])
-		self.deadline_timestamp		= 	self.actual_start_timestamp + self.customer_deadline
+		self.deadline				=	time_decoder.get_seconds(self.experiment['experiment_deadline'])
+		self.deadline_timestamp		= 	self.actual_start_timestamp + self.deadline
 
-		#self.single_job_duration	=	time_decoder.get_seconds(experiment['single_job_duration'])
-		#self.all_job_duration		=	self.single_job_duration * self.jqueuer_job_added_count
-		self.replica_min = int(experiment['replica_min'])
-		self.replica_max = int(experiment['replica_max'])
+		self.replica_min = int(self.experiment['replica_min'])
+		self.replica_max = int(self.experiment['replica_max'])
 
-		self.single_task_duration	=	time_decoder.get_seconds(experiment['single_task_duration'])
+		self.single_task_duration	=	time_decoder.get_seconds(self.experiment['single_task_duration'])
 		'''
 		self.all_job_duration		=	self.single_task_duration * self.jqueuer_task_added_count
 		self.estimated_deadline				=	self.single_task_duration * self.jqueuer_task_added_count
@@ -206,17 +189,27 @@ class Experiment:
 
 
 	def calc_replica_count(self):
-		jobs_running_count = self.jqueuer_job_started_count - self.jqueuer_job_accomplished_count
+		jobs_running_count = self.jqueuer_job_started_count - self.jqueuer_job_accomplished_count - self.jqueuer_job_failed_count
 		jobs_queued = self.jqueuer_job_added_count - jobs_running_count
+
+		self.service_replica_count = docker_agent.replicas(self.service_name)
+		'''
 		time_needed = 0
-		self.service_replica_count = docker_agent.replaces(self.service_name)
 		if (self.service_replica_count > 0):
-			time_needed = jobs_queued * (self.single_task_duration * self.task_per_job_avg) / self.service_replica_count
+			time_needed = (jobs_queued * self.single_task_duration * self.task_per_job_avg) / self.service_replica_count
 		else :
 			time_needed = jobs_queued * (self.single_task_duration * self.task_per_job_avg) 
+		'''
+		time_remaining	=	self.deadline_timestamp - self.time_now()
+		if (time_remaining > 0):
+			replica_needed	= 	(jobs_queued * self.single_task_duration * self.task_per_job_avg) / time_remaining
+		else:
+			replica_needed	= 	(jobs_queued * self.single_task_duration * self.task_per_job_avg)
+		
+		replica_needed	= 	math.ceil(replica_needed)
 
-		time_remaining	=	self.time_now() - self.deadline_timestamp
-		replica_needed	= 	jobs_queued * (self.single_task_duration * self.task_per_job_avg) / time_remaining
+		if (replica_needed > self.jqueuer_job_added_count):
+			replica_needed = self.jqueuer_job_added_count
 
 		if (replica_needed > self.service_replica_count):
 			if (replica_needed > self.replica_max):
@@ -224,21 +217,38 @@ class Experiment:
 		else:
 			if (replica_needed < self.replica_min):
 				replica_needed = self.replica_min
-		return replica_needed
-
+		return replica_needed, time_remaining
 
 	def run_service(self, replica_needed):
 		docker_agent.create(self.image_url, self.service_name, replica_needed)
+
+	def scale(self, replica_needed):
+		docker_agent.scale(self.service_name, replica_needed)
+
+	def remove(self):
+		docker_agent.remove(self.service_name)
 
 	def start(self):
 		self.init_counters()
 		self.process_jobs()
 		self.update_params()
-		replica_needed = self.calc_replica_count()
+		replica_needed, time_remaining = self.calc_replica_count()
 		self.run_service(replica_needed)
 		while self.jqueuer_job_accomplished_count < self.jqueuer_job_added_count:
-			replica_needed = self.calc_replica_count()
+			print('Tasks: {}/{} :  Jobs: {}/{} : Avg {} Task/Job : Failed {}'.
+				format(str(self.jqueuer_task_accomplished_count), str(self.jqueuer_task_added_count),
+					str(self.jqueuer_job_accomplished_count), str(self.jqueuer_job_added_count), 
+					str(self.task_per_job_avg),
+					str(self.jqueuer_job_failed_count)
+					))
+			replica_needed, time_remaining = self.calc_replica_count()
+			print('Needed: {}, Running: {}, Time Remaining: {}'.
+				format(str(replica_needed), str(self.service_replica_count), str(time_remaining)))
 			if (replica_needed != self.service_replica_count):
-				docker_agent.scale(self.service_name, replica_needed)
-				#print("I should scale now")
-			time.sleep(15)
+				self.scale(replica_needed)
+			time.sleep(10)
+		else:
+			print("Yupppppi, I finished ({} tasks)/({} jobs) in ({} seconds)".
+				format(str(self.jqueuer_task_added_count), str(self.jqueuer_job_added_count), str(self.time_now() - self.actual_start_timestamp)))
+			self.scale(0)
+			self.remove()

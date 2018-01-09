@@ -9,7 +9,7 @@ import prometheus_getter
 from experiment import Experiment 
 
 prometheus_protocol = 'http'
-prometheus_ip       = '127.0.0.1'
+prometheus_ip       = 'prometheus'
 prometheus_port     = 9090
 
 experiments = {}
@@ -39,6 +39,18 @@ class HTTP(BaseHTTPRequestHandler):
 		self.send_header('Content-type', 'text/html')
 		self.end_headers()
 
+	def do_GET(self):
+		data = None
+		binary = None
+		html_file = open('./index.html','r')
+		response = html_file.read()
+		html_file.close()
+		#print(response)
+		binary = bytes(json.dumps(response),"utf-8")
+
+		self._set_headers()
+		self.wfile.write(binary)
+
 	def do_HEAD(self):
 		self._set_headers()
 		
@@ -57,6 +69,14 @@ class HTTP(BaseHTTPRequestHandler):
 			print("Error in parsing the content_length and packet data")
 		data_back = ""
 
+		if (self.path == '/experiment/result'):
+			print('data_json' + str(data_json))
+			data = str(data_json)
+			html_file = open('./index.html','a')
+			html_file.write("<p>" + data + "<p><br>")
+			html_file.close()
+			data_back = "received"
+			print("------------------/experiment/result---------------")
 		if (self.path == '/experiment/add'):
 			print(str(data_json))
 			data_back = add_experiment(data_json)

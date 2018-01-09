@@ -11,9 +11,10 @@ ADD job_operations.py /experiment_manager/job_operations.py
 ADD experiment_manager.py /experiment_manager/experiment_manager.py
 ADD parameters.py /experiment_manager/parameters.py
 ADD monitoring.py /experiment_manager/monitoring.py
+ADD index.html /experiment_manager/index.html
 WORKDIR /experiment_manager/
 RUN mkdir log
 RUN mkdir data
-RUN pip install -r requirements.txt
-RUN pip install -U "celery[redis]"
+RUN pip3 install -r requirements.txt
+RUN pip3 install -U "celery[redis]"
 ENTRYPOINT python3 experiment_manager.py 

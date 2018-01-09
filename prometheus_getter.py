@@ -9,12 +9,12 @@ worker_queries = [
 
 queries = [
 	{'var': "jqueuer_task_added_count", 				'query_str': "sum(jqueuer_task_added_count)+by+(experiment_id,service_name)" },
-	{'var': "jqueuer_task_running_count", 				'query_str': "sum(jqueuer_task_running_count)+by+(experiment_id,service_name,job_id)" },
-	{'var': "jqueuer_task_started_count", 				'query_str': "sum(jqueuer_task_started_count)+by+(experiment_id,service_name,job_id)" },
-	{'var': "jqueuer_task_accomplished_count", 			'query_str': "sum(jqueuer_task_accomplished_count)+by+(experiment_id,service_name,job_id)" },
-	{'var': "jqueuer_task_accomplished_latency", 		'query_str': "avg(jqueuer_task_accomplished_latency)+by+(experiment_id,service_name,job_id)" },
-	{'var': "jqueuer_task_accomplished_latency_count", 	'query_str': "sum(jqueuer_task_accomplished_latency_count)+by+(experiment_id,service_name,job_id)" },
-	{'var': "jqueuer_task_accomplished_latency_sum", 	'query_str': "avg(jqueuer_task_accomplished_latency_sum)+by+(experiment_id,service_name,job_id)" },
+	{'var': "jqueuer_task_running_count", 				'query_str': "sum(jqueuer_task_running_count)+by+(experiment_id,service_name)" },
+	{'var': "jqueuer_task_started_count", 				'query_str': "sum(jqueuer_task_started_count)+by+(experiment_id,service_name)" },
+	{'var': "jqueuer_task_accomplished_count", 			'query_str': "sum(jqueuer_task_accomplished_count)+by+(experiment_id,service_name)" },
+	{'var': "jqueuer_task_accomplished_latency", 		'query_str': "avg(jqueuer_task_accomplished_latency)+by+(experiment_id,service_name)" },
+	{'var': "jqueuer_task_accomplished_latency_count", 	'query_str': "sum(jqueuer_task_accomplished_latency_count)+by+(experiment_id,service_name)" },
+	{'var': "jqueuer_task_accomplished_latency_sum", 	'query_str': "avg(jqueuer_task_accomplished_latency_sum)+by+(experiment_id,service_name)" },
 
 	{'var': "jqueuer_job_added_count", 					'query_str': "sum(jqueuer_job_added_count)+by+(experiment_id,service_name)" },
 	{'var': "jqueuer_job_running_count", 				'query_str': "sum(jqueuer_job_running_count)+by+(experiment_id,service_name)" },
@@ -47,12 +47,12 @@ def start(prometheus_protocol, prometheus_ip, prometheus_port, experiments):
 				for result in resposne['data']['result']:
 					try:
 						service_name = result['metric']['service_name']
-						for experiment in experiments:
+						for experiment_id in experiments:
 							try:
-								experiment.update(query['var'], result)
+								experiments[experiment_id]['experiment'].update(query['var'], result)
 							except Exception as e:
-								print("A problem happened while updating workers in " + str(experiment))
-								pass
+								print("A problem happened while updating %s worker in %s" % (query['var'] , str(experiment_id)))
+								raise e
 					except Exception as e:
 						pprint(result)
 			except Exception as ex:
@@ -60,18 +60,21 @@ def start(prometheus_protocol, prometheus_ip, prometheus_port, experiments):
 
 		for query in queries:
 			try:
+				#pprint(result)
 				resposne = get(query['query_str'])
 				experiment_id = None
 				for result in resposne['data']['result']:
 					try:
 						experiment_id = result['metric']['experiment_id']
-						experiments[experiment_id].update(query['var'], result)
+						experiments[experiment_id]['experiment'].update(query['var'], result)
 					except Exception as e:
-						print("A problem happened while updating jobs/tasks in " + experiment_id)
-						pprint(result)
+						print("A problem happened while updating %s jobs/tasks in %s with result %s" % (query['var'] , experiment_id, str(result)))
+						#pprint(result)
+						raise e
 			except Exception as e:
-				print("Error in " + str(query))
+				pass
+				#print("Error in " + str(query))
 
 
-		time.sleep(15)
+		time.sleep(10)
 #start("http", "178.22.69.24", 9090, None)

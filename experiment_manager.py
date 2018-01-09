@@ -3,13 +3,11 @@ import urllib.parse, json, time, ast, random
 from pprint import pprint
 from threading import Thread
 
-#import job_manager
+import job_manager
 import prometheus_getter
 
 from experiment import Experiment 
-#from autoscaler import Autoscaler
 
-#autoscaler = Autoscaler()
 prometheus_protocol = 'http'
 prometheus_ip       = '127.0.0.1'
 prometheus_port     = 9090
@@ -88,18 +86,13 @@ def start_experiment_receiver(port=8081):
 
 if __name__ == '__main__':
 
-	#job_manager_thread = Thread(target = job_manager.start_job_manager, args = ())
-	#job_manager_thread.start()
-	print("test")
+	job_manager_thread = Thread(target = job_manager.start_job_manager, args = ())
+	job_manager_thread.start()
+
 	prometheus_getter_thread = Thread(target = prometheus_getter.start, 
 		args = (prometheus_protocol, prometheus_ip, prometheus_port, experiments,)
 		)
 	prometheus_getter_thread.start()
-
-	#autoscaler_thread = Thread(target = autoscaler.start, 
-	#	args = (experiments,)
-	#	)
-	#autoscaler_thread.start()
 
 	experiment_receiver_thread = Thread(target = start_experiment_receiver, args = ())
 	experiment_receiver_thread.start()

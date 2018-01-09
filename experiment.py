@@ -2,6 +2,7 @@ import time, math, datetime, random
 from parameters import backend_experiment_db, JOB_QUEUE_PREFIX
 from celery import subtask
 import monitoring, job_operations, time_decoder
+import docker_agent
 
 class Experiment:
 	def __init__(self, experiment_id, private_id, experiment):
@@ -12,7 +13,7 @@ class Experiment:
 		self.image_url = experiment['image_url']
 		try:
 			self.service_name 	= self.image_url.replace("/","_").replace(":","_") + "__" + private_id
-			#self.add_service(self.service_name)
+			self.add_service(self.service_name)
 		except Exception as e:
 			self.service_name 	= None
 		self.experiment = experiment
@@ -31,9 +32,6 @@ class Experiment:
 			{'experiment_id':self.experiment_id})
 		output = "A new service has just been added " + service_name + "\n"
 		self.add_log(output)
-
-	def run_service(self):
-		pass
 
 	def update(self, query_var, result):
 		if (query_var == 'jqueuer_task_added_count'):
@@ -211,6 +209,7 @@ class Experiment:
 		jobs_running_count = self.jqueuer_job_started_count - self.jqueuer_job_accomplished_count
 		jobs_queued = self.jqueuer_job_added_count - jobs_running_count
 		time_needed = 0
+		self.service_replica_count = docker_agent.replaces(self.service_name)
 		if (self.service_replica_count > 0):
 			time_needed = jobs_queued * (self.single_task_duration * self.task_per_job_avg) / self.service_replica_count
 		else :
@@ -228,15 +227,18 @@ class Experiment:
 		return replica_needed
 
 
+	def run_service(self, replica_needed):
+		docker_agent.create(self.image_url, self.service_name, replica_needed)
+
 	def start(self):
 		self.init_counters()
 		self.process_jobs()
 		self.update_params()
-		self.calc_replica_count()
-		self.run_service()
+		replica_needed = self.calc_replica_count()
+		self.run_service(replica_needed)
 		while self.jqueuer_job_accomplished_count < self.jqueuer_job_added_count:
 			replica_needed = self.calc_replica_count()
 			if (replica_needed != self.service_replica_count):
-				#self.autoscaler.scale(replica_needed)
-				print("I should scale now")
+				docker_agent.scale(self.service_name, replica_needed)
+				#print("I should scale now")
 			time.sleep(15)

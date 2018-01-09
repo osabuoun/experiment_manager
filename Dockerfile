@@ -1,7 +1,10 @@
 FROM python:3
 
 ADD requirements.txt /experiment_manager/requirements.txt
-ADD experiment_operations.py /experiment_manager/experiment_operations.py
+ADD experiment.py /experiment_manager/experiment.py
+ADD docker_agent.py /experiment_manager/docker_agent.py
+ADD prometheus_getter.py /experiment_manager/prometheus_getter.py
+ADD time_decoder.py /experiment_manager/time_decoder.py
 ADD job_manager.py /experiment_manager/job_manager.py
 ADD jqueuing_worker.py /experiment_manager/jqueuing_worker.py
 ADD job_operations.py /experiment_manager/job_operations.py

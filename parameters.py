@@ -2,9 +2,9 @@ import redis
 JOB_QUEUE_PREFIX 	= 	'jqueue_service_'
 broker_protocol		= 	'pyamqp'
 #broker_username 	= 	'guest'
-broker_username 	= 	'guest'
+broker_username 	= 	'admin'
 #broker_password 	= 	''
-broker_password 	= 	''
+broker_password 	= 	'mypass'
 #broker_server		=	'192.168.253.1'
 broker_server		=	'rabbit'
 broker_port 		= 	5672

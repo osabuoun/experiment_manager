@@ -160,7 +160,7 @@ def add(self, exp_id, job_queue_id, job):
 			raise Reject(e, requeue=True)
 			print("I' killing the process since my container is dead :(")
 			#time.sleep(10)
-			os._exit(0)
+			sys.exit(0)
 		'''
 		except Exception as e:
 	#		monitoring.task_failed(getNodeID(worker_id), exp_id, getServiceName(worker_id), worker_id, job_queue_id, task_id, task_start_time)

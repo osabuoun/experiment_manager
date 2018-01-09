@@ -59,9 +59,11 @@ class HTTP(BaseHTTPRequestHandler):
 		# Doesn't do anything with posted data
 		content_length= None
 		data_json = None
+		data =None
 		try:
 			content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
 			data = self.rfile.read(int(content_length)).decode('utf-8')
+			print('data : ' + str(data))
 			data_json = ast.literal_eval(data)
 			print(data_json['service_name'])
 			pass
@@ -70,8 +72,9 @@ class HTTP(BaseHTTPRequestHandler):
 		data_back = ""
 
 		if (self.path == '/experiment/result'):
-			print('data_json' + str(data_json))
-			data = str(data_json)
+
+			
+			print('data_json' + str(data))
 			html_file = open('./index.html','a')
 			html_file.write("<p>" + data + "<p><br>")
 			html_file.close()

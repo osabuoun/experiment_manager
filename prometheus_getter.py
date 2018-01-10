@@ -40,10 +40,14 @@ def get(query):
 def start(prometheus_protocol, prometheus_ip, prometheus_port, experiments):
 	global url
 	url = prometheus_protocol + "://" + prometheus_ip + ":" + str(prometheus_port)
+	print("URL = " + url)
 	while True:
 		for query in worker_queries:
 			try:
 				resposne = get(query['query_str'])
+				if ('data' not in resposne):
+					continue
+
 				for result in resposne['data']['result']:
 					try:
 						service_name = result['metric']['service_name']
@@ -57,6 +61,7 @@ def start(prometheus_protocol, prometheus_ip, prometheus_port, experiments):
 						pprint(result)
 			except Exception as ex:
 				print("Error in " + str(query))
+				raise ex
 
 		for query in queries:
 			try:

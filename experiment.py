@@ -201,15 +201,21 @@ class Experiment:
 			time_needed = jobs_queued * (self.single_task_duration * self.task_per_job_avg) 
 		'''
 		time_remaining	=	self.deadline_timestamp - self.time_now()
-		if (time_remaining > 0):
-			replica_needed	= 	(jobs_queued * self.single_task_duration * self.task_per_job_avg) / time_remaining
+
+		if (self.jqueuer_task_accomplished_latency == 0):
+			self.system_calculated_single_task_duration = self.single_task_duration
 		else:
-			replica_needed	= 	(jobs_queued * self.single_task_duration * self.task_per_job_avg)
+			self.system_calculated_single_task_duration = self.jqueuer_task_accomplished_latency
+
+		if (time_remaining > 0):
+			replica_needed	= 	(jobs_queued * self.system_calculated_single_task_duration * self.task_per_job_avg) / time_remaining
+		else:
+			replica_needed	= 	(jobs_queued * self.system_calculated_single_task_duration * self.task_per_job_avg)
 		
 		replica_needed	= 	math.ceil(replica_needed)
 
-		if (replica_needed > self.jqueuer_job_added_count):
-			replica_needed = self.jqueuer_job_added_count
+		if (replica_needed > jobs_queued):
+			replica_needed = jobs_queued
 
 		if (replica_needed > self.service_replica_count):
 			if (replica_needed > self.replica_max):
@@ -235,18 +241,19 @@ class Experiment:
 		replica_needed, time_remaining = self.calc_replica_count()
 		self.run_service(replica_needed)
 		while self.jqueuer_job_accomplished_count < self.jqueuer_job_added_count:
-			print('Tasks: {}/{} :  Jobs: {}/{} : Avg {} Task/Job : Failed {}'.
-				format(str(self.jqueuer_task_accomplished_count), str(self.jqueuer_task_added_count),
-					str(self.jqueuer_job_accomplished_count), str(self.jqueuer_job_added_count), 
-					str(self.task_per_job_avg),
-					str(self.jqueuer_job_failed_count)
-					))
 			replica_needed, time_remaining = self.calc_replica_count()
-			print('Needed: {}, Running: {}, Time Remaining: {}'.
-				format(str(replica_needed), str(self.service_replica_count), str(time_remaining)))
+			print('\nTasks: {} added/{} done|  Jobs: {} added/{} started/{} done/{} failed \n Avg {} Task/Job | Container {} running/{} needed \n Time: {} Remaining/ Singe : {} Estimated/ {} Calculated'.
+				format(
+					str(self.jqueuer_task_added_count), str(self.jqueuer_task_accomplished_count), 
+					str(self.jqueuer_job_added_count) , str(self.jqueuer_job_started_count) ,str(self.jqueuer_job_accomplished_count) , str(self.jqueuer_job_failed_count), 
+					str(self.task_per_job_avg),
+					str(self.service_replica_count), str(replica_needed),  
+					str(time_remaining), str(self.single_task_duration), str(self.system_calculated_single_task_duration)
+					))
+
 			if (replica_needed != self.service_replica_count):
 				self.scale(replica_needed)
-			time.sleep(10)
+			time.sleep(self.single_task_duration)
 		else:
 			print("Yupppppi, I finished ({} tasks)/({} jobs) in ({} seconds)".
 				format(str(self.jqueuer_task_added_count), str(self.jqueuer_job_added_count), str(self.time_now() - self.actual_start_timestamp)))

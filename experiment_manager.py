@@ -9,7 +9,7 @@ import prometheus_getter
 from experiment import Experiment 
 
 prometheus_protocol = 'http'
-prometheus_ip       = '172.31.1.1'
+prometheus_ip       = 'prometheus'
 prometheus_port     = 9090
 
 experiments = {}

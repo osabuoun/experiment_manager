@@ -15,6 +15,6 @@ ADD index.html /experiment_manager/index.html
 WORKDIR /experiment_manager/
 RUN mkdir log
 RUN mkdir data
-RUN pip3 install -r requirements.txt
-RUN pip3 install -U "celery[redis]"
+RUN pip install -r requirements.txt
+RUN pip install -U "celery[redis]"
 ENTRYPOINT python3 experiment_manager.py 

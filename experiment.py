@@ -158,7 +158,7 @@ class Experiment:
 			self.add_log(output)
 
 	def add_job(self, job):
-		print('self.service_name:' + self.service_name)
+		#print('self.service_name:' + self.service_name)
 		job_queue_id = "j_" + self.service_name +"_" + str(int(round(time.time() * 1000))) + "_" + str(random.randrange(100, 999))
 		self.add_log("job_queue_id:" + job_queue_id + " - JOB_QUEUE_PREFIX:" + JOB_QUEUE_PREFIX)
 
@@ -226,7 +226,8 @@ class Experiment:
 		return replica_needed, time_remaining
 
 	def run_service(self, replica_needed):
-		docker_agent.create(self.image_url, self.service_name, replica_needed)
+		stop_grace_period = math.ceil(self.single_task_duration * 1.1) + "s"
+		docker_agent.create(self.image_url, self.service_name, replica_needed, stop_grace_period)
 
 	def scale(self, replica_needed):
 		docker_agent.scale(self.service_name, replica_needed)

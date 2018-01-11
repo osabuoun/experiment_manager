@@ -1,10 +1,19 @@
 from pprint import pprint
 import shlex, subprocess, json
 
-def create(image_url, service_name, replicas):
+def create(image_url, service_name, replicas, stop_grace_period):
 	output = ""
 	try:
-		output = subprocess.check_output(['docker','service', 'create', '-t', '--name', service_name,'--replicas', str(replicas), image_url])
+		output = subprocess.check_output(
+			[
+			'docker','service', 'create', '-t', 
+			'--name', service_name,
+			'--replicas', str(replicas),
+			'--stop-grace-period', stop_grace_period, 
+			image_url
+			]
+		)
+
 	except Exception as e:
 		output = "Error happened : " + str(e)
 	print(output)

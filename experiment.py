@@ -7,9 +7,9 @@ import docker_agent
 class Experiment:
 	def __init__(self, experiment_id, private_id, experiment):
 		self.log = ""
-		self.actual_start_timestamp	= 	self.time_now()
+		self.experiment_actual_start_timestamp	= 	self.time_now()
+
 		self.experiment_id 	= experiment_id
-		#self.autoscaler = autoscaler
 		print("**********************************")
 		print(str(experiment_id))
 		print(str(private_id))
@@ -22,6 +22,7 @@ class Experiment:
 		except Exception as e:
 			self.service_name 	= None
 		self.experiment = experiment
+		monitoring.experiment_actual_start_timestamp(self.experiment_id, self.service_name, self.experiment_actual_start_timestamp)
 
 	def add_log(self, text):
 		if (text):
@@ -39,9 +40,37 @@ class Experiment:
 		output = "A new service has just been added " + service_name + "\n"
 		self.add_log(output)
 
+	def init_counters(self):
+		self.service_replicas_running 				=	0
+		self.jqueuer_worker_count 					=	0
+
+		self.jqueuer_task_added_count				= 	0 
+		self.jqueuer_task_running_count				=	0
+		self.jqueuer_task_started_count				=	0
+		self.jqueuer_task_accomplished_count		=	0
+		self.jqueuer_task_accomplished_latency		=	0
+		self.jqueuer_task_accomplished_latency_count=	0
+		self.jqueuer_task_accomplished_latency_sum	=	0
+
+		self.jqueuer_job_added_count				=	0
+		self.jqueuer_job_running_count				=	0
+		self.jqueuer_job_started_count				=	0
+		self.jqueuer_job_accomplished_count			=	0
+		self.jqueuer_job_accomplished_latency		=	0
+		self.jqueuer_job_accomplished_latency_count	=	0
+		self.jqueuer_job_accomplished_latency_sum	=	0
+
+		self.task_per_job_avg						=	0
+
+		self.jqueuer_job_failed_count				=	0
+		self.jqueuer_job_failed_latency				=	0
+		self.jqueuer_job_failed_latency_count		=	0
+		self.jqueuer_job_failed_latency_sum			=	0
+
 	def update(self, query_var, result):
 		if (query_var == 'jqueuer_task_added_count'):
-			self.jqueuer_task_added_count = int(result['value'][1])
+			#self.jqueuer_task_added_count = int(result['value'][1])
+			pass
 		elif (query_var == 'jqueuer_task_running_count'):
 			self.jqueuer_task_running_count = int(result['value'][1])
 		elif (query_var == 'jqueuer_task_started_count'):
@@ -77,33 +106,6 @@ class Experiment:
 		elif (query_var == 'jqueuer_worker_count'):
 			if (result['metric']['service_name'] == self.service_name):
 				self.jqueuer_worker_count = int(result['value'][1])
-
-	def init_counters(self):
-		self.service_replica_count 					=	0
-		self.jqueuer_worker_count 					=	0
-
-		self.jqueuer_task_added_count				= 	0 
-		self.jqueuer_task_running_count				=	0
-		self.jqueuer_task_started_count				=	0
-		self.jqueuer_task_accomplished_count		=	0
-		self.jqueuer_task_accomplished_latency		=	0
-		self.jqueuer_task_accomplished_latency_count=	0
-		self.jqueuer_task_accomplished_latency_sum	=	0
-
-		self.jqueuer_job_added_count				=	0
-		self.jqueuer_job_running_count				=	0
-		self.jqueuer_job_started_count				=	0
-		self.jqueuer_job_accomplished_count			=	0
-		self.jqueuer_job_accomplished_latency		=	0
-		self.jqueuer_job_accomplished_latency_count	=	0
-		self.jqueuer_job_accomplished_latency_sum	=	0
-
-		self.task_per_job_avg						=	0
-
-		self.jqueuer_job_failed_count				=	0
-		self.jqueuer_job_failed_latency				=	0
-		self.jqueuer_job_failed_latency_count		=	0
-		self.jqueuer_job_failed_latency_sum			=	0
 
 	def process_jobs(self):
 		output = ""
@@ -154,83 +156,95 @@ class Experiment:
 
 		for x in range(0,jobs['count']):
 			job_id = jobs['id'] + "_" + str(x)
-			output = self.add_job(jobs)
+			output = self.add_job(jobs, job_id)
 			self.add_log(output)
 
-	def add_job(self, job):
-		#print('self.service_name:' + self.service_name)
+	def add_tasks(self, tasks, job_id):
+		for task in tasks:
+			self.jqueuer_task_added_count += 1
+			monitoring.add_task(self.experiment_id, self.service_name, job_id, task['id'])
+			self.add_log("The task {} of job {} has been added to monitoring".
+				format(str(task['id']), str(job_id)) )
+
+	def add_job(self, job, job_id = None):
+		if (not job_id):
+			job_id = job["id"]
+
+		self.add_tasks(job['tasks'], job_id)
+
+		self.jqueuer_job_added_count += 1 
+		monitoring.add_job(self.experiment_id, self.service_name, job_id)
+
 		job_queue_id = "j_" + self.service_name +"_" + str(int(round(time.time() * 1000))) + "_" + str(random.randrange(100, 999))
-		self.add_log("job_queue_id:" + job_queue_id + " - JOB_QUEUE_PREFIX:" + JOB_QUEUE_PREFIX)
 
 		chain = subtask('job_operations.add', queue = JOB_QUEUE_PREFIX + self.service_name)
 		chain.delay(self.experiment_id, job_queue_id, job)
-		self.jqueuer_job_added_count += 1 
-		monitoring.add_job(self.experiment_id, self.service_name, job_queue_id)
-		self.add_log("The job " + str(job['id']) + " has just been added")
 
-		task_count = self.get_task_count(job['tasks'])
-		monitoring.add_task(self.experiment_id, self.service_name, job_queue_id, task_count)
-		self.jqueuer_task_added_count += task_count
-		self.add_log("The job " + str(job['id']) + " has " + str(task_count) + " tasks, they have just been added")
+		self.add_log("The job_id {} ,job_queue_id: {} - ,JOB_QUEUE_PREFIX: {}has just been added".
+			format(str(job_id), str(job_queue_id), str(JOB_QUEUE_PREFIX)))
 
 	def update_params(self):
 		self.deadline				=	time_decoder.get_seconds(self.experiment['experiment_deadline'])
-		self.deadline_timestamp		= 	self.actual_start_timestamp + self.deadline
 
-		self.replica_min = int(self.experiment['replica_min'])
-		self.replica_max = int(self.experiment['replica_max'])
+		self.experiment_deadline_timestamp		= 	self.experiment_actual_start_timestamp + self.deadline
+		monitoring.experiment_deadline_timestamp(self.experiment_id, self.service_name, self.experiment_deadline_timestamp)
+
+		self.service_replicas_min = int(self.experiment['replica_min'])
+		monitoring.service_replicas_min(self.experiment_id, self.service_name, self.service_replicas_min)
+
+		self.service_replicas_max = int(self.experiment['replica_max'])
+		monitoring.service_replicas_max(self.experiment_id, self.service_name, self.service_replicas_max)
 
 		self.single_task_duration	=	time_decoder.get_seconds(self.experiment['single_task_duration'])
+		monitoring.single_task_duration(self.experiment_id, self.service_name, self.single_task_duration)
 		'''
 		self.all_job_duration		=	self.single_task_duration * self.jqueuer_task_added_count
 		self.estimated_deadline				=	self.single_task_duration * self.jqueuer_task_added_count
-		self.estimated_deadline_timestamp	=	self.actual_start_timestamp + self.estimated_deadline
+		self.estimated_deadline_timestamp	=	self.experiment_actual_start_timestamp + self.estimated_deadline
 		'''
 
+	def update_service_replicas_running(self):
+		self.service_replicas_running = docker_agent.replicas(self.service_name)
+		monitoring.service_replicas_running(self.experiment_id, self.service_name, self.service_replicas_running)
 
 	def calc_replica_count(self):
-		jobs_running_count = self.jqueuer_job_started_count - self.jqueuer_job_accomplished_count - self.jqueuer_job_failed_count
-		jobs_queued = self.jqueuer_job_added_count - jobs_running_count
+		self.update_service_replicas_running()
+		#jobs_running_count = self.jqueuer_job_started_count - self.jqueuer_job_accomplished_count - self.jqueuer_job_failed_count
+		jobs_queued = self.jqueuer_job_added_count - self.jqueuer_job_accomplished_count
 
-		self.service_replica_count = docker_agent.replicas(self.service_name)
-		'''
-		time_needed = 0
-		if (self.service_replica_count > 0):
-			time_needed = (jobs_queued * self.single_task_duration * self.task_per_job_avg) / self.service_replica_count
-		else :
-			time_needed = jobs_queued * (self.single_task_duration * self.task_per_job_avg) 
-		'''
-		time_remaining	=	self.deadline_timestamp - self.time_now()
+		time_remaining	=	self.experiment_deadline_timestamp - self.time_now()
 
 		if (self.jqueuer_task_accomplished_latency == 0):
 			self.system_calculated_single_task_duration = self.single_task_duration
 		else:
 			self.system_calculated_single_task_duration = self.jqueuer_task_accomplished_latency
+		monitoring.single_task_duration(self.experiment_id, self.service_name, self.system_calculated_single_task_duration)
 
 		if (time_remaining > 0):
-			replica_needed	= 	(jobs_queued * self.system_calculated_single_task_duration * self.task_per_job_avg) / time_remaining
+			service_replicas_needed	= 	(jobs_queued * self.system_calculated_single_task_duration * self.task_per_job_avg) / time_remaining
 		else:
-			replica_needed	= 	(jobs_queued * self.system_calculated_single_task_duration * self.task_per_job_avg)
+			service_replicas_needed	= 	(jobs_queued * self.system_calculated_single_task_duration * self.task_per_job_avg)
 		
-		replica_needed	= 	math.ceil(replica_needed)
+		service_replicas_needed	= 	math.ceil(service_replicas_needed)
 
-		if (replica_needed > jobs_queued):
-			replica_needed = jobs_queued
+		if (service_replicas_needed > jobs_queued):
+			service_replicas_needed = jobs_queued
 
-		if (replica_needed > self.service_replica_count):
-			if (replica_needed > self.replica_max):
-				replica_needed = self.replica_max
+		if (service_replicas_needed > self.service_replicas_running):
+			if (service_replicas_needed > self.service_replicas_max):
+				service_replicas_needed = self.service_replicas_max
 		else:
-			if (replica_needed < self.replica_min):
-				replica_needed = self.replica_min
-		return replica_needed, time_remaining
+			if (service_replicas_needed < self.service_replicas_min):
+				service_replicas_needed = self.service_replicas_min
+		monitoring.service_replicas_needed(self.experiment_id, self.service_name, service_replicas_needed)
+		return service_replicas_needed, time_remaining
 
-	def run_service(self, replica_needed):
-		stop_grace_period = math.ceil(self.single_task_duration * 1.1) + "s"
-		docker_agent.create(self.image_url, self.service_name, replica_needed, stop_grace_period)
+	def run_service(self, service_replicas_needed):
+		stop_grace_period = str(math.ceil(self.single_task_duration * 1.1)) + "s"
+		docker_agent.create(self.image_url, self.service_name, service_replicas_needed, stop_grace_period)
 
-	def scale(self, replica_needed):
-		docker_agent.scale(self.service_name, replica_needed)
+	def scale(self, service_replicas_needed):
+		docker_agent.scale(self.service_name, service_replicas_needed)
 
 	def remove(self):
 		docker_agent.remove(self.service_name)
@@ -239,24 +253,26 @@ class Experiment:
 		self.init_counters()
 		self.process_jobs()
 		self.update_params()
-		replica_needed, time_remaining = self.calc_replica_count()
-		self.run_service(replica_needed)
+		service_replicas_needed, time_remaining = self.calc_replica_count()
+		self.run_service(service_replicas_needed)
 		while self.jqueuer_job_accomplished_count < self.jqueuer_job_added_count:
-			replica_needed, time_remaining = self.calc_replica_count()
+			service_replicas_needed, time_remaining = self.calc_replica_count()
 			print('\nTasks: {} added/{} done|  Jobs: {} added/{} started/{} done/{} failed \n Avg {} Task/Job | Container {} running/{} needed \n Time: {} Remaining/ Singe : {} Estimated/ {} Calculated'.
 				format(
 					str(self.jqueuer_task_added_count), str(self.jqueuer_task_accomplished_count), 
 					str(self.jqueuer_job_added_count) , str(self.jqueuer_job_started_count) ,str(self.jqueuer_job_accomplished_count) , str(self.jqueuer_job_failed_count), 
 					str(self.task_per_job_avg),
-					str(self.service_replica_count), str(replica_needed),  
+					str(self.service_replicas_running), str(service_replicas_needed),  
 					str(time_remaining), str(self.single_task_duration), str(self.system_calculated_single_task_duration)
 					))
 
-			if (replica_needed != self.service_replica_count):
-				self.scale(replica_needed)
+			if (service_replicas_needed != self.service_replicas_running):
+				self.scale(service_replicas_needed)
 			time.sleep(self.single_task_duration)
 		else:
-			print("Yupppppi, I finished ({} tasks)/({} jobs) in ({} seconds)".
-				format(str(self.jqueuer_task_added_count), str(self.jqueuer_job_added_count), str(self.time_now() - self.actual_start_timestamp)))
+			monitoring.experiment_actual_end_timestamp(self.experiment_id, self.service_name, time.time())
+			print("--------- Yupppppi, I finished ({} tasks)/({} jobs) in ({} seconds) ----------- ".
+				format(str(self.jqueuer_task_added_count), str(self.jqueuer_job_added_count), str(self.time_now() - self.experiment_actual_start_timestamp)))
 			self.scale(0)
+			self.update_service_replicas_running()
 			self.remove()

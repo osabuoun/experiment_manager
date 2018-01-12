@@ -8,7 +8,7 @@ worker_queries = [
 	]
 
 queries = [
-	{'var': "jqueuer_task_added_count", 				'query_str': "sum(jqueuer_task_added_count)+by+(experiment_id,service_name)" },
+	{'var': "jqueuer_task_added_count", 				'query_str': "count(jqueuer_task_added)+by+(experiment_id,service_name)" },
 	{'var': "jqueuer_task_running_count", 				'query_str': "sum(jqueuer_task_running_count)+by+(experiment_id,service_name)" },
 	{'var': "jqueuer_task_started_count", 				'query_str': "sum(jqueuer_task_started_count)+by+(experiment_id,service_name)" },
 	{'var': "jqueuer_task_accomplished_count", 			'query_str': "sum(jqueuer_task_accomplished_count)+by+(experiment_id,service_name)" },
@@ -16,7 +16,7 @@ queries = [
 	{'var': "jqueuer_task_accomplished_latency_count", 	'query_str': "sum(jqueuer_task_accomplished_latency_count)+by+(experiment_id,service_name)" },
 	{'var': "jqueuer_task_accomplished_latency_sum", 	'query_str': "avg(jqueuer_task_accomplished_latency_sum)+by+(experiment_id,service_name)" },
 
-	{'var': "jqueuer_job_added_count", 					'query_str': "sum(jqueuer_job_added_count)+by+(experiment_id,service_name)" },
+	{'var': "jqueuer_job_added_count", 					'query_str': "count(jqueuer_job_added)+by+(experiment_id,service_name)" },
 	{'var': "jqueuer_job_running_count", 				'query_str': "sum(jqueuer_job_running_count)+by+(experiment_id,service_name)" },
 	{'var': "jqueuer_job_started_count", 				'query_str': "sum(jqueuer_job_started_count)+by+(experiment_id,service_name)" },
 	{'var': "jqueuer_job_accomplished_count", 			'query_str': "sum(jqueuer_job_accomplished_count)+by+(experiment_id,service_name)" },

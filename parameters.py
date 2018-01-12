@@ -36,10 +36,24 @@ def backend(db):
 	return backend
 
 
-from datadog import DogStatsd
+#from datadog import DogStatsd
 
 #STASTD_SERVER 	= '192.168.253.1'
 STATSD_SERVER 	= 'statsd'
 STATSD_PORT		= 9125
 
-statsd = DogStatsd(host=STATSD_SERVER, port=STATSD_PORT)
+
+#statsd = DogStatsd(host=STATSD_SERVER, port=STATSD_PORT)
+
+STATSD_OPTIONS = {
+    'api_key':'jqueuer_api_key',
+    'app_key':'jqueuer_app_key',
+    'statsd_host': STATSD_SERVER,
+    'statsd_port': STATSD_PORT
+}
+
+from datadog import initialize
+
+initialize(**STATSD_OPTIONS)
+
+from datadog import statsd

@@ -2,35 +2,11 @@ from prometheus_client import Counter, Gauge, Histogram
 import time, sys
 from parameters import statsd
 
-#JQUEUER_WORKER_ADDED_COUNT = 'jqueuer_worker_added_count'
-JQUEUER_WORKER_COUNT = "jqueuer_worker_count" 
 
-def add_worker(node_id, service_name):
-	statsd.increment(JQUEUER_WORKER_COUNT,
-		tags=[
-			'node_id:%s' % node_id,
-			'service_name:%s' % service_name,
-		]
-	)
-
-#JQUEUER_WORKER_TERMINATED_COUNT = 'jqueuer_worker_terminated_count'
-def terminate_worker(node_id, service_name):
-	statsd.decrement(JQUEUER_WORKER_COUNT,
-		tags=[
-			'node_id:%s' % node_id,
-			'service_name:%s' % service_name,
-		]
-	)
-JQUEUER_JOB_ADDED_COUNT = 'jqueuer_job_added_count'
-JQUEUER_JOB_RUNNING_COUNT = 'jqueuer_job_running_count'
-JQUEUER_JOB_STARTED_COUNT = 'jqueuer_job_started_count'
-JQUEUER_JOB_ACCOMPLISHED_COUNT = 'jqueuer_job_accomplished_count'
-JQUEUER_JOB_ACCOMPLISHED_LATENCY = 'jqueuer_job_accomplished_latency'
-JQUEUER_JOB_FAILED_COUNT = 'jqueuer_job_failed_count'
-JQUEUER_JOB_FAILED_LATENCY = 'jqueuer_job_failed_latency'
-
+JQUEUER_JOB_ADDED = 'jqueuer_job_added'
 def add_job(experiment_id ,service_name, job_id):
-	statsd.increment(JQUEUER_JOB_ADDED_COUNT,
+	statsd.gauge(JQUEUER_JOB_ADDED,
+		time.time(),
 		tags=[
 			'experiment_id:%s' % experiment_id,
 			'service_name:%s' % service_name,
@@ -38,191 +14,95 @@ def add_job(experiment_id ,service_name, job_id):
 		]
 	)
 
-def run_job(node_id, experiment_id ,service_name, qworker_id, job_id):
-	statsd.increment(JQUEUER_JOB_RUNNING_COUNT,
-		tags=[
-			'node_id:%s' % node_id,
-			'experiment_id:%s' % experiment_id,
-			'service_name:%s' % service_name,
-			'qworker_id: %s' % qworker_id,
-			'job_id: %s' % job_id,
-		]
-	)
-	statsd.increment(JQUEUER_JOB_STARTED_COUNT,
-		tags=[
-			'node_id:%s' % node_id,
-			'experiment_id:%s' % experiment_id,
-			'service_name:%s' % service_name,
-			'qworker_id: %s' % qworker_id,
-			'job_id: %s' % job_id,
-		]
-	)
-
-def terminate_job(node_id, experiment_id ,service_name, qworker_id, job_id, start_time):
-	elapsed_time = time.time() - start_time
-	statsd.histogram(JQUEUER_JOB_ACCOMPLISHED_LATENCY,
-		elapsed_time,
-		tags=[
-			'node_id:%s' % node_id,
-			'experiment_id:%s' % experiment_id,
-			'service_name:%s' % service_name,
-			'qworker_id: %s' % qworker_id,
-			'job_id: %s' % job_id,
-		]
-	)
-	statsd.increment(JQUEUER_JOB_ACCOMPLISHED_COUNT,
-		tags=[
-			'node_id:%s' % node_id,
-			'experiment_id:%s' % experiment_id,
-			'service_name:%s' % service_name,
-			'qworker_id: %s' % qworker_id,
-			'job_id: %s' % job_id,
-		]
-	)
-	statsd.decrement(JQUEUER_JOB_RUNNING_COUNT,
-		tags=[
-			'node_id:%s' % node_id,
-			'experiment_id:%s' % experiment_id,
-			'service_name:%s' % service_name,
-			'qworker_id: %s' % qworker_id,
-			'job_id: %s' % job_id,
-		]
-	)
-
-def job_failed(node_id, experiment_id ,service_name, qworker_id, job_id, start_time):
-	elapsed_time = time.time() - start_time
-	statsd.histogram(JQUEUER_JOB_FAILED_LATENCY,
-		elapsed_time,
-		tags=[
-			'node_id:%s' % node_id,
-			'experiment_id:%s' % experiment_id,
-			'service_name:%s' % service_name,
-			'qworker_id: %s' % qworker_id,
-			'job_id: %s' % job_id,
-		]
-	)
-	statsd.increment(JQUEUER_JOB_FAILED_COUNT,
-		tags=[
-			'node_id:%s' % node_id,
-			'experiment_id:%s' % experiment_id,
-			'service_name:%s' % service_name,
-			'qworker_id: %s' % qworker_id,
-			'job_id: %s' % job_id,
-		]
-	)
-	statsd.decrement(JQUEUER_JOB_RUNNING_COUNT,
-		tags=[
-			'node_id:%s' % node_id,
-			'experiment_id:%s' % experiment_id,
-			'service_name:%s' % service_name,
-			'qworker_id: %s' % qworker_id,
-			'job_id: %s' % job_id,
-		]
-	)
-
-JQUEUER_TASK_ADDED_COUNT = 'jqueuer_task_added_count'
-JQUEUER_TASK_RUNNING_COUNT = 'jqueuer_task_running_count'
-JQUEUER_TASK_STARTED_COUNT = 'jqueuer_task_started_count'
-JQUEUER_TASK_ACCOMPLISHED_COUNT = 'jqueuer_task_accomplished_count'
-JQUEUER_TASK_ACCOMPLISHED_LATENCY = 'jqueuer_task_accomplished_latency'
-JQUEUER_TASK_FAILED_COUNT = 'jqueuer_task_failed_count'
-JQUEUER_TASK_FAILED_LATENCY = 'jqueuer_task_failed_latency'
-
-def add_task(experiment_id ,service_name, job_id, task_count = 1):
-	statsd.increment(JQUEUER_TASK_ADDED_COUNT,
+JQUEUER_TASK_ADDED = 'jqueuer_task_added'
+def add_task(experiment_id ,service_name, job_id, task_id):
+	statsd.gauge(JQUEUER_TASK_ADDED,
+		time.time(),
 		tags=[
 			'experiment_id:%s' % experiment_id,
 			'service_name:%s' % service_name,
-			'job_id: %s' % job_id,
-		],
-		value=task_count
-	)
-
-def run_task(node_id, experiment_id ,service_name, qworker_id, job_id, task_id):
-	statsd.increment(JQUEUER_TASK_RUNNING_COUNT,
-		tags=[
-			'node_id:%s' % node_id,
-			'experiment_id:%s' % experiment_id,
-			'service_name:%s' % service_name,
-			'qworker_id: %s' % qworker_id,
-			'job_id: %s' % job_id,
-			'task_id: %s' % task_id,
-		]
-	)
-	statsd.increment(JQUEUER_TASK_STARTED_COUNT,
-		tags=[
-			'node_id:%s' % node_id,
-			'experiment_id:%s' % experiment_id,
-			'service_name:%s' % service_name,
-			'qworker_id: %s' % qworker_id,
-			'job_id: %s' % job_id,
-			'task_id: %s' % task_id,
-		]
-	)
-def terminate_task(node_id, experiment_id ,service_name, qworker_id, job_id, task_id, start_time):
-	elapsed_time = time.time() - start_time
-	statsd.histogram(JQUEUER_TASK_ACCOMPLISHED_LATENCY,
-		elapsed_time,
-		tags=[
-			'node_id:%s' % node_id,
-			'experiment_id:%s' % experiment_id,
-			'service_name:%s' % service_name,
-			'qworker_id: %s' % qworker_id,
-			'job_id: %s' % job_id,
-			'task_id: %s' % task_id,
-		]
-	)
-	statsd.increment(JQUEUER_TASK_ACCOMPLISHED_COUNT,
-		tags=[
-			'node_id:%s' % node_id,
-			'experiment_id:%s' % experiment_id,
-			'service_name:%s' % service_name,
-			'qworker_id: %s' % qworker_id,
-			'job_id: %s' % job_id,
-			'task_id: %s' % task_id,
-		]
-	)
-	statsd.decrement(JQUEUER_TASK_RUNNING_COUNT,
-		tags=[
-			'node_id:%s' % node_id,
-			'experiment_id:%s' % experiment_id,
-			'service_name:%s' % service_name,
-			'qworker_id: %s' % qworker_id,
 			'job_id: %s' % job_id,
 			'task_id: %s' % task_id,
 		]
 	)
 
-def task_failed(node_id, experiment_id ,service_name, qworker_id, job_id, task_id, start_time):
-	elapsed_time = time.time() - start_time
-	statsd.histogram(JQUEUER_TASK_FAILED_LATENCY,
-		elapsed_time,
+
+JQUEUER_SERVICE_REPLICAS_RUNNING = 'jqueuer_service_replicas_running'
+def service_replicas_running(experiment_id ,service_name, service_replicas_running):
+	statsd.gauge(JQUEUER_SERVICE_REPLICAS_RUNNING,
+		service_replicas_running,
 		tags=[
-			'node_id:%s' % node_id,
 			'experiment_id:%s' % experiment_id,
 			'service_name:%s' % service_name,
-			'qworker_id: %s' % qworker_id,
-			'job_id: %s' % job_id,
-			'task_id: %s' % task_id,
 		]
 	)
-	statsd.increment(JQUEUER_TASK_FAILED_COUNT,
+
+JQUEUER_SERVICE_REPLICAS_NEEDED = 'jqueuer_service_replicas_needed'
+def service_replicas_needed(experiment_id ,service_name, service_replicas_needed):
+	statsd.gauge(JQUEUER_SERVICE_REPLICAS_NEEDED,
+		service_replicas_needed,
 		tags=[
-			'node_id:%s' % node_id,
 			'experiment_id:%s' % experiment_id,
 			'service_name:%s' % service_name,
-			'qworker_id: %s' % qworker_id,
-			'job_id: %s' % job_id,
-			'task_id: %s' % task_id,
 		]
 	)
-	statsd.decrement(JQUEUER_TASK_RUNNING_COUNT,
+
+JQUEUER_SERVICE_REPLICAS_MIN = 'jqueuer_service_replicas_min'
+def service_replicas_min(experiment_id ,service_name, service_replicas_min):
+	statsd.gauge(JQUEUER_SERVICE_REPLICAS_MIN,
+		service_replicas_min,
 		tags=[
-			'node_id:%s' % node_id,
 			'experiment_id:%s' % experiment_id,
 			'service_name:%s' % service_name,
-			'qworker_id: %s' % qworker_id,
-			'job_id: %s' % job_id,
-			'task_id: %s' % task_id,
+		]
+	)
+
+JQUEUER_SERVICE_REPLICAS_MAX = 'jqueuer_service_replicas_max'
+def service_replicas_max(experiment_id ,service_name, service_replicas_max):
+	statsd.gauge(JQUEUER_SERVICE_REPLICAS_MAX,
+		service_replicas_max,
+		tags=[
+			'experiment_id:%s' % experiment_id,
+			'service_name:%s' % service_name,
+		]
+	)
+
+JQUEUER_SINGLE_TASK_DURATION = 'jqueuer_single_task_duration'
+def single_task_duration(experiment_id ,service_name, single_task_duration):
+	statsd.gauge(JQUEUER_SINGLE_TASK_DURATION,
+		single_task_duration,
+		tags=[
+			'experiment_id:%s' % experiment_id,
+			'service_name:%s' % service_name,
+		]
+	)
+
+JQUEUER_EXPERIMENT_ACTUAL_START_TIMESTAMP = 'jqueuer_experiment_actual_start_timestamp'
+def experiment_actual_start_timestamp(experiment_id ,service_name, experiment_actual_start_timestamp):
+	statsd.gauge(JQUEUER_EXPERIMENT_ACTUAL_START_TIMESTAMP,
+		experiment_actual_start_timestamp,
+		tags=[
+			'experiment_id:%s' % experiment_id,
+			'service_name:%s' % service_name,
+		]
+	)
+
+JQUEUER_EXPERIMENT_DEADLINE_TIMESTAMP = 'jqueuer_experiment_deadline_timestamp'
+def experiment_deadline_timestamp(experiment_id ,service_name, experiment_deadline_timestamp):
+	statsd.gauge(JQUEUER_EXPERIMENT_DEADLINE_TIMESTAMP,
+		experiment_deadline_timestamp,
+		tags=[
+			'experiment_id:%s' % experiment_id,
+			'service_name:%s' % service_name,
+		]
+	)
+
+JQUEUER_EXPERIMENT_ACTUAL_END_TIMESTAMP = 'jqueuer_experiment_actual_end_timestamp'
+def experiment_actual_end_timestamp(experiment_id ,service_name, experiment_actual_end_timestamp):
+	statsd.gauge(JQUEUER_EXPERIMENT_ACTUAL_END_TIMESTAMP,
+		experiment_actual_end_timestamp,
+		tags=[
+			'experiment_id:%s' % experiment_id,
+			'service_name:%s' % service_name,
 		]
 	)

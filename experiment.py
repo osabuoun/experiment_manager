@@ -17,7 +17,7 @@ class Experiment:
 		print("**********************************")
 		self.image_url = experiment['image_url']
 		try:
-			self.service_name 	= self.image_url.replace("/","_").replace(":","_") + "__" + private_id
+			self.service_name 	= self.image_url.replace("/","_").replace(":","_").replace(".","_").replace("-","_") + "__" + private_id
 			self.add_service(self.service_name)
 		except Exception as e:
 			self.service_name 	= None
@@ -266,7 +266,7 @@ class Experiment:
 					str(time_remaining), str(self.single_task_duration), str(self.system_calculated_single_task_duration)
 					))
 
-			if (service_replicas_needed != self.service_replicas_running):
+			if (service_replicas_needed > self.service_replicas_running):
 				self.scale(service_replicas_needed)
 			time.sleep(self.single_task_duration)
 		else:

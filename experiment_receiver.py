@@ -37,7 +37,7 @@ class HTTP(BaseHTTPRequestHandler):
 	def do_GET(self):
 		data = None
 		binary = None
-		html_file = open('./index.html','r')
+		html_file = open('.' + self.path + '.html','r')
 		response = html_file.read()
 		html_file.close()
 		#print(response)
@@ -70,7 +70,7 @@ class HTTP(BaseHTTPRequestHandler):
 
 			#data_json = json.load(data)
 			print('data_json' + str(data_json))
-			html_file = open('./index.html','a')
+			html_file = open('./' + data_json['id'] + '.html','a')
 			text = '<hr>Received from {} at {}: Params: {} '.format(
 				str(self.client_address),
 				str(time.time()),

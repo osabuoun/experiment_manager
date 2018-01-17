@@ -268,7 +268,7 @@ class Experiment:
 
 			if (service_replicas_needed != self.service_replicas_running):
 				self.scale(service_replicas_needed)
-			time.sleep(self.single_task_duration)
+			time.sleep(math.ceil(self.single_task_duration /10))
 		else:
 			monitoring.experiment_actual_end_timestamp(self.experiment_id, self.service_name, time.time())
 			print("--------- Yupppppi, I finished ({} tasks)/({} jobs) in ({} seconds) ----------- ".

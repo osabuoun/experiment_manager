@@ -37,12 +37,14 @@ class HTTP(BaseHTTPRequestHandler):
 	def do_GET(self):
 		data = None
 		binary = None
-		html_file = open('.' + self.path + '.html','r')
-		response = html_file.read()
-		html_file.close()
-		#print(response)
+		response = "Error 404"
+		try:
+			html_file = open('.' + self.path + '.html','r')
+			response = html_file.read()
+			html_file.close()
+		except Exception as e:
+			pass
 		binary = bytes(json.dumps(response),"utf-8")
-
 		self._set_headers()
 		self.wfile.write(binary)
 

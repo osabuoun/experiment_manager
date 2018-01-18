@@ -66,6 +66,8 @@ class Experiment:
 		self.jqueuer_job_failed_latency				=	0
 		self.jqueuer_job_failed_latency_count		=	0
 		self.jqueuer_job_failed_latency_sum			=	0
+		self.reserve_memory							=	0
+		self.reserve_cpu							=	0
 
 	def update(self, query_var, result):
 		if (result['value'][1] == "NaN"):
@@ -199,6 +201,9 @@ class Experiment:
 
 		self.single_task_duration	=	time_decoder.get_seconds(self.experiment['single_task_duration'])
 		monitoring.single_task_duration(self.experiment_id, self.service_name, self.single_task_duration)
+
+		self.reserve_memory = int(self.experiment['reserve_memory'])
+		self.reserve_cpu 	= int(self.experiment['reserve_cpu'])
 		'''
 		self.all_job_duration		=	self.single_task_duration * self.jqueuer_task_added_count
 		self.estimated_deadline				=	self.single_task_duration * self.jqueuer_task_added_count
@@ -243,7 +248,7 @@ class Experiment:
 
 	def run_service(self, service_replicas_needed):
 		stop_grace_period = str(math.ceil(self.single_task_duration * 1.1)) + "s"
-		docker_agent.create(self.image_url, self.service_name, service_replicas_needed, stop_grace_period)
+		docker_agent.create(self.image_url, self.service_name, service_replicas_needed, stop_grace_period, self.reserve_memory,self.reserve_cpu)
 
 	def scale(self, service_replicas_needed):
 		docker_agent.scale(self.service_name, service_replicas_needed)

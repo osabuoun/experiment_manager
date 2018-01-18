@@ -1,7 +1,7 @@
 from pprint import pprint
 import shlex, subprocess, json
 
-def create(image_url, service_name, replicas, stop_grace_period):
+def create(image_url, service_name, replicas, stop_grace_period, reserve_memory, reserve_cpu):
 	output = ""
 	try:
 		output = subprocess.check_output(
@@ -9,7 +9,9 @@ def create(image_url, service_name, replicas, stop_grace_period):
 			'docker','service', 'create', '-t', 
 			'--name', service_name,
 			'--replicas', str(replicas),
-			'--stop-grace-period', stop_grace_period, 
+			'--stop-grace-period', stop_grace_period,
+			'--reserve-memory', reserve_memory,
+			'--reserve-cpu', reserve_cpu, 
 			image_url
 			]
 		)

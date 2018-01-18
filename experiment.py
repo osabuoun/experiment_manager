@@ -68,6 +68,8 @@ class Experiment:
 		self.jqueuer_job_failed_latency_sum			=	0
 
 	def update(self, query_var, result):
+		if (result['value'][1] == "NaN"):
+			return
 		if (query_var == 'jqueuer_task_added_count'):
 			#self.jqueuer_task_added_count = int(result['value'][1])
 			pass
@@ -266,7 +268,7 @@ class Experiment:
 					str(time_remaining), str(self.single_task_duration), str(self.system_calculated_single_task_duration)
 					))
 
-			if (service_replicas_needed != self.service_replicas_running):
+			if (service_replicas_needed > self.service_replicas_running):
 				self.scale(service_replicas_needed)
 			time.sleep(math.ceil(self.single_task_duration /10))
 		else:

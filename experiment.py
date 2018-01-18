@@ -202,8 +202,8 @@ class Experiment:
 		self.single_task_duration	=	time_decoder.get_seconds(self.experiment['single_task_duration'])
 		monitoring.single_task_duration(self.experiment_id, self.service_name, self.single_task_duration)
 
-		self.reserve_memory = int(self.experiment['reserve_memory'])
-		self.reserve_cpu 	= int(self.experiment['reserve_cpu'])
+		self.reserve_memory = self.experiment['reserve_memory']
+		self.reserve_cpu 	= self.experiment['reserve_cpu']
 		'''
 		self.all_job_duration		=	self.single_task_duration * self.jqueuer_task_added_count
 		self.estimated_deadline				=	self.single_task_duration * self.jqueuer_task_added_count

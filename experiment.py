@@ -273,7 +273,7 @@ class Experiment:
 					str(time_remaining), str(self.single_task_duration), str(self.system_calculated_single_task_duration)
 					))
 
-			if (service_replicas_needed > self.service_replicas_running):
+			if (service_replicas_needed != self.service_replicas_running):
 				self.scale(service_replicas_needed)
 			time.sleep(math.ceil(self.single_task_duration /10))
 		else:

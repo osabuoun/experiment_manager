@@ -237,13 +237,14 @@ class Experiment:
 		if (service_replicas_needed > jobs_queued):
 			service_replicas_needed = jobs_queued
 
+		monitoring.service_replicas_needed(self.experiment_id, self.service_name, service_replicas_needed)
+
 		if (service_replicas_needed > self.service_replicas_running):
 			if (service_replicas_needed > self.service_replicas_max):
 				service_replicas_needed = self.service_replicas_max
 		else:
 			if (service_replicas_needed < self.service_replicas_min):
 				service_replicas_needed = self.service_replicas_min
-		monitoring.service_replicas_needed(self.experiment_id, self.service_name, service_replicas_needed)
 		return service_replicas_needed, time_remaining
 
 	def run_service(self, service_replicas_needed):

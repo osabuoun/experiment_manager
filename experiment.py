@@ -227,6 +227,7 @@ class Experiment:
 			self.system_calculated_single_task_duration = self.jqueuer_task_accomplished_latency
 		monitoring.single_task_duration(self.experiment_id, self.service_name, self.system_calculated_single_task_duration)
 
+		service_replicas_needed = 0
 		if (time_remaining > 0):
 			service_replicas_needed	= 	(jobs_queued * self.system_calculated_single_task_duration * self.task_per_job_avg) / time_remaining
 		else:

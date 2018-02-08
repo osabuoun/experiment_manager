@@ -265,6 +265,7 @@ class Experiment:
 		service_replicas_needed, time_remaining = self.calc_replica_count()
 		self.run_service(service_replicas_needed)
 		while self.jqueuer_job_accomplished_count < self.jqueuer_job_added_count:
+			monitoring.experiment_running_timestamp(self.experiment_id, self.service_name, time.time())
 			service_replicas_needed, time_remaining = self.calc_replica_count()
 			print('\nTasks: {} added/{} done|  Jobs: {} added/{} started/{} done/{} failed \n Avg {} Task/Job | Container {} running/{} needed \n Time: {} Remaining/ Singe : {} Estimated/ {} Calculated'.
 				format(

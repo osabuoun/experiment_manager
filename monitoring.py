@@ -106,3 +106,13 @@ def experiment_actual_end_timestamp(experiment_id ,service_name, experiment_actu
 			'service_name:%s' % service_name,
 		]
 	)
+
+JQUEUER_EXPERIMENT_RUNNING_TIMESTAMP = 'jqueuer_experiment_running_timestamp'
+def experiment_running_timestamp(experiment_id ,service_name, experiment_running_timestamp):
+	statsd.gauge(JQUEUER_EXPERIMENT_RUNNING_TIMESTAMP,
+		experiment_running_timestamp,
+		tags=[
+			'experiment_id:%s' % experiment_id,
+			'service_name:%s' % service_name,
+		]
+	)

@@ -11,7 +11,9 @@ def create(image_url, service_name, replicas, stop_grace_period, reserve_memory,
 			'--replicas', str(replicas),
 			'--stop-grace-period', stop_grace_period,
 			'--reserve-memory', reserve_memory,
-			'--reserve-cpu', reserve_cpu, 
+			'--reserve-cpu', reserve_cpu,
+			'--log-driver syslog',
+			'--log-opt syslog-address=udp://127.0.0.1:7514', 
 			image_url
 			]
 		)

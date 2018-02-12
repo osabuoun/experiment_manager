@@ -264,9 +264,11 @@ class Experiment:
 		self.update_params()
 		service_replicas_needed, time_remaining = self.calc_replica_count()
 		self.run_service(service_replicas_needed)
+		update_index = 0
+		scale = 'none'
 		while self.jqueuer_job_accomplished_count < self.jqueuer_job_added_count:
 			monitoring.experiment_running_timestamp(self.experiment_id, self.service_name, time.time())
-			service_replicas_needed, time_remaining = self.calc_replica_count()
+			service_replicas_needed_new, time_remaining = self.calc_replica_count()
 			print('\nTasks: {} added/{} done|  Jobs: {} added/{} started/{} done/{} failed \n Avg {} Task/Job | Container {} running/{} needed \n Time: {} Remaining/ Single : {} Estimated/ {} Calculated'.
 				format(
 					str(self.jqueuer_task_added_count), str(self.jqueuer_task_accomplished_count), 
@@ -276,9 +278,37 @@ class Experiment:
 					str(time_remaining), str(self.single_task_duration), str(self.system_calculated_single_task_duration)
 					))
 
-			if (service_replicas_needed != self.service_replicas_running):
+			print('\Scaling: {} New_Needed | {} Needed | {} Index | {} Scale | {} Running'.
+				format(
+					str(service_replicas_needed_new), str(service_replicas_needed), 
+					str(update_index) , str(scale) ,str(self.service_replicas_running)
+					))
+
+			if (service_replicas_needed_new != service_replicas_needed):
+				if (update_index == 0):
+					service_replicas_needed = service_replicas_needed_new
+
+				if (service_replicas_needed > self.service_replicas_running):
+					if (scale == 'up'):
+						update_index += 1
+					else:
+						update_index = 0
+						scale = 'up'
+				elif (service_replicas_needed < self.service_replicas_running):
+					if (scale == 'down'):
+						update_index += 1
+					else:
+						update_index = 0
+						scale = 'down'
+
+			else:
+				update_index += 1
+
+			if ((service_replicas_needed != self.service_replicas_running) && (update_index > 3)):
 				self.scale(service_replicas_needed)
-			time.sleep(math.ceil(self.single_task_duration /10))
+				update_index = 0
+				scale = 'none'
+			time.sleep(math.ceil(self.single_task_duration /4))
 		else:
 			monitoring.experiment_actual_end_timestamp(self.experiment_id, self.service_name, time.time())
 			print("--------- Yupppppi, I finished ({} tasks)/({} jobs) in ({} seconds) ----------- ".

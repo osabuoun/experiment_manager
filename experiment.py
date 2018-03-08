@@ -219,7 +219,7 @@ class Experiment:
 		#jobs_running_count = self.jqueuer_job_started_count - self.jqueuer_job_accomplished_count - self.jqueuer_job_failed_count
 		jobs_queued = self.jqueuer_job_added_count - self.jqueuer_job_accomplished_count
 
-		time_remaining	=	self.experiment_deadline_timestamp - self.time_now()
+		time_remaining	= self.experiment_deadline_timestamp - self.time_now()
 
 		if (self.jqueuer_task_accomplished_latency == 0):
 			self.system_calculated_single_task_duration = self.single_task_duration
@@ -234,6 +234,14 @@ class Experiment:
 			service_replicas_needed	= 	(jobs_queued * self.system_calculated_single_task_duration * self.task_per_job_avg)
 		
 		service_replicas_needed	= 	math.ceil(service_replicas_needed)
+
+		if (self.jqueuer_job_accomplished_count > 0):
+			time_spent = self.time_now() - self.experiment_actual_start_timestamp
+			time_needed = time_spent * jobs_queued / self.jqueuer_job_accomplished_count
+			if (time_needed > time_remaining):
+				service_replicas_needed2 = math.ceil(time_needed * service_replicas_needed / time_remaining)
+				if (service_replicas_needed2 > service_replicas_needed):
+					service_replicas_needed = service_replicas_needed2
 
 		if (service_replicas_needed > jobs_queued):
 			service_replicas_needed = jobs_queued
@@ -300,11 +308,21 @@ class Experiment:
 					else:
 						update_index = 0
 						scale = 'down'
-
+				else:
+					update_index = 0
+					scale = 'none'
 			else:
-				update_index += 1
+				if (service_replicas_needed > self.service_replicas_running):
+					update_index += 1
+					scale = 'up'
+				elif (service_replicas_needed < self.service_replicas_running):
+					update_index += 1
+					scale = 'down'
+				else:
+					update_index = 0
+					scale = 'none'
 
-			if ((service_replicas_needed != self.service_replicas_running) && (update_index > 3)):
+			if ((service_replicas_needed != self.service_replicas_running) and (update_index > 3)):
 				self.scale(service_replicas_needed)
 				update_index = 0
 				scale = 'none'

@@ -39,14 +39,25 @@ class HTTP(BaseHTTPRequestHandler):
 		binary = None
 		response = "Error 404"
 		try:
-			html_file = open('.' + self.path + '.html','r')
-			response = html_file.read()
-			html_file.close()
+			if (self.path == '/'):
+				html_file = open('./index.html','rb')
+				response = html_file.read()
+				html_file.close()
+				self._set_headers()
+				print(response)
+				self.wfile.write(response)
+				print("-----------------------------------------")
+				return
+			else:
+				html_file = open('.' + self.path + '.html','r')
+				response = html_file.read()
+				html_file.close()
+				binary = bytes(json.dumps(response),"utf-8")
+				self._set_headers()
+				self.wfile.write(binary)
 		except Exception as e:
+			print(str(e))
 			pass
-		binary = bytes(json.dumps(response),"utf-8")
-		self._set_headers()
-		self.wfile.write(binary)
 
 	def do_HEAD(self):
 		self._set_headers()

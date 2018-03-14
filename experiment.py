@@ -239,14 +239,17 @@ class Experiment:
 			time_spent = self.time_now() - self.experiment_actual_start_timestamp
 			time_needed = time_spent * jobs_queued / self.jqueuer_job_accomplished_count
 			if (time_needed > time_remaining):
-				service_replicas_needed2 = math.ceil(time_needed * service_replicas_needed / time_remaining)
+				service_replicas_needed2 = service_replicas_needed
+				if (time_remaining > 0):
+					service_replicas_needed2 = math.ceil(time_needed * service_replicas_needed / time_remaining)
+				else:
+					service_replicas_needed2 = jobs_queued
 				if (service_replicas_needed2 > service_replicas_needed):
 					service_replicas_needed = service_replicas_needed2
-
-		if (service_replicas_needed > jobs_queued):
-			service_replicas_needed = jobs_queued
-
-		monitoring.service_replicas_needed(self.experiment_id, self.service_name, service_replicas_needed)
+				'''
+				if (service_replicas_needed > self.service_replicas_max):
+					service_replicas_needed = jobs_queued
+				'''
 
 		if (service_replicas_needed > self.service_replicas_running):
 			if (service_replicas_needed > self.service_replicas_max):
@@ -254,6 +257,8 @@ class Experiment:
 		else:
 			if (service_replicas_needed < self.service_replicas_min):
 				service_replicas_needed = self.service_replicas_min
+		monitoring.service_replicas_needed(self.experiment_id, self.service_name, service_replicas_needed)
+
 		return service_replicas_needed, time_remaining
 
 	def run_service(self, service_replicas_needed):

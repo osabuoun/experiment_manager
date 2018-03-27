@@ -219,7 +219,7 @@ class Experiment:
 		#jobs_running_count = self.jqueuer_job_started_count - self.jqueuer_job_accomplished_count - self.jqueuer_job_failed_count
 		jobs_queued = self.jqueuer_job_added_count - self.jqueuer_job_accomplished_count
 
-		time_remaining	= self.experiment_deadline_timestamp - self.time_now()
+		remaining_time	= self.experiment_deadline_timestamp - self.time_now()
 
 		if (self.jqueuer_task_accomplished_latency == 0):
 			self.system_calculated_single_task_duration = self.single_task_duration
@@ -228,8 +228,8 @@ class Experiment:
 		monitoring.single_task_duration(self.experiment_id, self.service_name, self.system_calculated_single_task_duration)
 
 		service_replicas_needed = 0
-		if (time_remaining > 0):
-			service_replicas_needed	= 	(jobs_queued * self.system_calculated_single_task_duration * self.task_per_job_avg) / time_remaining
+		if (remaining_time > 0):
+			service_replicas_needed	= 	(jobs_queued * self.system_calculated_single_task_duration * self.task_per_job_avg) / remaining_time
 		else:
 			service_replicas_needed	= 	(jobs_queued * self.system_calculated_single_task_duration * self.task_per_job_avg)
 		
@@ -238,10 +238,10 @@ class Experiment:
 		if (self.jqueuer_job_accomplished_count > 0):
 			time_spent = self.time_now() - self.experiment_actual_start_timestamp
 			time_needed = time_spent * jobs_queued / self.jqueuer_job_accomplished_count
-			if (time_needed > time_remaining):
+			if (time_needed > remaining_time):
 				service_replicas_needed2 = service_replicas_needed
-				if (time_remaining > 0):
-					service_replicas_needed2 = math.ceil(time_needed * service_replicas_needed / time_remaining)
+				if (remaining_time > 0):
+					service_replicas_needed2 = math.ceil(time_needed * service_replicas_needed / remaining_time)
 				else:
 					service_replicas_needed2 = jobs_queued
 				if (service_replicas_needed2 > service_replicas_needed):
@@ -259,7 +259,7 @@ class Experiment:
 				service_replicas_needed = self.service_replicas_min
 		monitoring.service_replicas_needed(self.experiment_id, self.service_name, service_replicas_needed)
 
-		return service_replicas_needed, time_remaining
+		return service_replicas_needed, remaining_time
 
 	def run_service(self, service_replicas_needed):
 		stop_grace_period = str(math.ceil(self.single_task_duration * 1.1)) + "s"
@@ -275,61 +275,61 @@ class Experiment:
 		self.init_counters()
 		self.process_jobs()
 		self.update_params()
-		service_replicas_needed, time_remaining = self.calc_replica_count()
+		service_replicas_needed, remaining_time = self.calc_replica_count()
 		self.run_service(service_replicas_needed)
-		update_index = 0
+		coherence_index = 0
 		scale = 'none'
 		while self.jqueuer_job_accomplished_count < self.jqueuer_job_added_count:
 			monitoring.experiment_running_timestamp(self.experiment_id, self.service_name, time.time())
-			service_replicas_needed_new, time_remaining = self.calc_replica_count()
-			print('\nTasks: {} added/{} done|  Jobs: {} added/{} started/{} done/{} failed \n Avg {} Task/Job | Container {} running/{} needed \n Time: {} Remaining/ Single : {} Estimated/ {} Calculated'.
+			service_replicas_needed_new, remaining_time = self.calc_replica_count()
+			print('\nTasks: ({} added)/ ({} done)|  Jobs: ({} added) / ({} started) / ({} done) / ({} failed) \n Avg {} Task/Job | Container {} running/{} needed \n Time: {} Remaining/ Single : {} Estimated/ {} Calculated'.
 				format(
 					str(self.jqueuer_task_added_count), str(self.jqueuer_task_accomplished_count), 
 					str(self.jqueuer_job_added_count) , str(self.jqueuer_job_started_count) ,str(self.jqueuer_job_accomplished_count) , str(self.jqueuer_job_failed_count), 
 					str(self.task_per_job_avg),
 					str(self.service_replicas_running), str(service_replicas_needed),  
-					str(time_remaining), str(self.single_task_duration), str(self.system_calculated_single_task_duration)
+					str(remaining_time), str(self.single_task_duration), str(self.system_calculated_single_task_duration)
 					))
 
-			print('\Scaling: {} New_Needed | {} Needed | {} Index | {} Scale | {} Running'.
+			print('\Scaling: ({} New_Needed) | ({} Needed) | ({} Coherence Index) | ({} Scale) | ({} Running)'.
 				format(
 					str(service_replicas_needed_new), str(service_replicas_needed), 
-					str(update_index) , str(scale) ,str(self.service_replicas_running)
+					str(coherence_index) , str(scale) ,str(self.service_replicas_running)
 					))
 
 			if (service_replicas_needed_new != service_replicas_needed):
-				if (update_index == 0):
+				if (coherence_index == 0):
 					service_replicas_needed = service_replicas_needed_new
 
 				if (service_replicas_needed > self.service_replicas_running):
 					if (scale == 'up'):
-						update_index += 1
+						coherence_index += 1
 					else:
-						update_index = 0
+						coherence_index = 0
 						scale = 'up'
 				elif (service_replicas_needed < self.service_replicas_running):
 					if (scale == 'down'):
-						update_index += 1
+						coherence_index += 1
 					else:
-						update_index = 0
+						coherence_index = 0
 						scale = 'down'
 				else:
-					update_index = 0
+					coherence_index = 0
 					scale = 'none'
 			else:
 				if (service_replicas_needed > self.service_replicas_running):
-					update_index += 1
+					coherence_index += 1
 					scale = 'up'
 				elif (service_replicas_needed < self.service_replicas_running):
-					update_index += 1
+					coherence_index += 1
 					scale = 'down'
 				else:
-					update_index = 0
+					coherence_index = 0
 					scale = 'none'
 
-			if ((service_replicas_needed != self.service_replicas_running) and (update_index > 3)):
+			if ((service_replicas_needed != self.service_replicas_running) and (coherence_index > 3)):
 				self.scale(service_replicas_needed)
-				update_index = 0
+				coherence_index = 0
 				scale = 'none'
 			time.sleep(math.ceil(self.single_task_duration /4))
 		else:

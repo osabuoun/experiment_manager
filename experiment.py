@@ -48,24 +48,24 @@ class Experiment:
 		self.jqueuer_task_running_count				=	0
 		self.jqueuer_task_started_count				=	0
 		self.jqueuer_task_accomplished_count		=	0
-		self.jqueuer_task_accomplished_latency		=	0
-		self.jqueuer_task_accomplished_latency_count=	0
-		self.jqueuer_task_accomplished_latency_sum	=	0
+		self.jqueuer_task_accomplished_duration		=	0
+		self.jqueuer_task_accomplished_duration_count=	0
+		self.jqueuer_task_accomplished_duration_sum	=	0
 
 		self.jqueuer_job_added_count				=	0
 		self.jqueuer_job_running_count				=	0
 		self.jqueuer_job_started_count				=	0
 		self.jqueuer_job_accomplished_count			=	0
-		self.jqueuer_job_accomplished_latency		=	0
-		self.jqueuer_job_accomplished_latency_count	=	0
-		self.jqueuer_job_accomplished_latency_sum	=	0
+		self.jqueuer_job_accomplished_duration		=	0
+		self.jqueuer_job_accomplished_duration_count	=	0
+		self.jqueuer_job_accomplished_duration_sum	=	0
 
 		self.task_per_job_avg						=	0
 
 		self.jqueuer_job_failed_count				=	0
-		self.jqueuer_job_failed_latency				=	0
-		self.jqueuer_job_failed_latency_count		=	0
-		self.jqueuer_job_failed_latency_sum			=	0
+		self.jqueuer_job_failed_duration				=	0
+		self.jqueuer_job_failed_duration_count		=	0
+		self.jqueuer_job_failed_duration_sum			=	0
 		self.reserve_memory							=	0
 		self.reserve_cpu							=	0
 
@@ -81,32 +81,32 @@ class Experiment:
 			self.jqueuer_task_started_count = int(result['value'][1])
 		elif (query_var == 'jqueuer_task_accomplished_count'):
 			self.jqueuer_task_accomplished_count = int(result['value'][1])
-		elif (query_var == 'jqueuer_task_accomplished_latency'):
-			self.jqueuer_task_accomplished_latency = float(result['value'][1])
-		elif (query_var == 'jqueuer_task_accomplished_latency_count'):
-			self.jqueuer_task_accomplished_latency_count = int(result['value'][1])
-		elif (query_var == 'jqueuer_task_accomplished_latency_sum'):
-			self.jqueuer_task_accomplished_latency_sum = float(result['value'][1])
+		elif (query_var == 'jqueuer_task_accomplished_duration'):
+			self.jqueuer_task_accomplished_duration = float(result['value'][1])
+		elif (query_var == 'jqueuer_task_accomplished_duration_count'):
+			self.jqueuer_task_accomplished_duration_count = int(result['value'][1])
+		elif (query_var == 'jqueuer_task_accomplished_duration_sum'):
+			self.jqueuer_task_accomplished_duration_sum = float(result['value'][1])
 		elif (query_var == 'jqueuer_job_running_count'):
 			self.jqueuer_job_running_count = int(result['value'][1])
 		elif (query_var == 'jqueuer_job_started_count'):
 			self.jqueuer_job_started_count = int(result['value'][1])
 		elif (query_var == 'jqueuer_job_accomplished_count'):
 			self.jqueuer_job_accomplished_count = int(result['value'][1])
-		elif (query_var == 'jqueuer_job_accomplished_latency'):
-			self.jqueuer_job_accomplished_latency = float(result['value'][1])
-		elif (query_var == 'jqueuer_job_accomplished_latency_count'):
-			self.jqueuer_job_accomplished_latency_count = int(result['value'][1])
-		elif (query_var == 'jqueuer_job_accomplished_latency_sum'):
-			self.jqueuer_job_accomplished_latency_sum = float(result['value'][1])
+		elif (query_var == 'jqueuer_job_accomplished_duration'):
+			self.jqueuer_job_accomplished_duration = float(result['value'][1])
+		elif (query_var == 'jqueuer_job_accomplished_duration_count'):
+			self.jqueuer_job_accomplished_duration_count = int(result['value'][1])
+		elif (query_var == 'jqueuer_job_accomplished_duration_sum'):
+			self.jqueuer_job_accomplished_duration_sum = float(result['value'][1])
 		elif (query_var == 'jqueuer_job_failed_count'):
 			self.jqueuer_job_failed_count = int(result['value'][1])
-		elif (query_var == 'jqueuer_job_failed_latency'):
-			self.jqueuer_job_failed_latency = float(result['value'][1])
-		elif (query_var == 'jqueuer_job_failed_latency_count'):
-			self.jqueuer_job_failed_latency_count = int(result['value'][1])
-		elif (query_var == 'jqueuer_job_failed_latency_sum'):
-			self.jqueuer_job_failed_latency_sum = float(result['value'][1])
+		elif (query_var == 'jqueuer_job_failed_duration'):
+			self.jqueuer_job_failed_duration = float(result['value'][1])
+		elif (query_var == 'jqueuer_job_failed_duration_count'):
+			self.jqueuer_job_failed_duration_count = int(result['value'][1])
+		elif (query_var == 'jqueuer_job_failed_duration_sum'):
+			self.jqueuer_job_failed_duration_sum = float(result['value'][1])
 		elif (query_var == 'jqueuer_worker_count'):
 			if (result['metric']['service_name'] == self.service_name):
 				self.jqueuer_worker_count = int(result['value'][1])
@@ -221,10 +221,10 @@ class Experiment:
 
 		remaining_time	= self.experiment_deadline_timestamp - self.time_now()
 
-		if (self.jqueuer_task_accomplished_latency == 0):
+		if (self.jqueuer_task_accomplished_duration == 0):
 			self.system_calculated_single_task_duration = self.single_task_duration
 		else:
-			self.system_calculated_single_task_duration = self.jqueuer_task_accomplished_latency
+			self.system_calculated_single_task_duration = self.jqueuer_task_accomplished_duration
 		monitoring.single_task_duration(self.experiment_id, self.service_name, self.system_calculated_single_task_duration)
 
 		service_replicas_needed = 0
